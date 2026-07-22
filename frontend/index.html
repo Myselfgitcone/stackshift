@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StackShift — Retarget Your Resume to Any Cloud</title>
+  <!-- Backend API base URL. Leave "" when the backend serves this page (local / Railway).
+       When hosting the frontend on Vercel, set this to your Railway URL, e.g.
+       "https://stackshift-api.up.railway.app" -->
+  <script>window.STACKSHIFT_API_BASE = "";</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    /* Preview styled like the exported PDF: Arial, black text, section rules.
+       App teal is kept as the section-header accent. */
+    .prose-resume { font-family: Arial, Helvetica, sans-serif; color:#111; font-size:13px; line-height:1.34; }
+    .prose-resume h1 { font-weight:700; font-size:15px; margin:0 0 .1rem; color:#000; }
+    .prose-resume h2 { font-weight:700; font-size:12.5px; margin:.85rem 0 .3rem; color:#0f766e;
+                       text-transform:uppercase; letter-spacing:.02em; border-bottom:1.5px solid #99f6e4; padding-bottom:2px; }
+    .prose-resume ul { list-style:disc; padding-left:1.05rem; margin:.2rem 0 .5rem; }
+    .prose-resume li { margin:.12rem 0; font-size:13px; line-height:1.34; }
+    .prose-resume p { font-size:13px; margin:.25rem 0; }
+    .prose-resume strong { color:#000; font-weight:700; }
+    .prose-resume .jobrow { display:flex; justify-content:space-between; align-items:baseline;
+                           gap:1rem; font-weight:700; color:#000; font-size:13px; margin:.5rem 0 .1rem; }
+    .prose-resume .jobrow .date { color:#555; font-weight:700; white-space:nowrap; }
+    .prose-resume .tech { font-size:13px; margin:.15rem 0 .3rem; }
+    .diffcol { white-space:pre-wrap; font-size:.8rem; line-height:1.4; }
+    .tab-btn { background:#e2e8f0; color:#475569; border-color:#cbd5e1; }
+    .tab-btn.active { background:#fff; color:#0f766e; border-color:#cbd5e1; }
+  </style>
+</head>
+<body class="h-full bg-slate-100 text-slate-800">
+  <div class="max-w-7xl mx-auto p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="mb-6">
+      <h1 class="text-3xl font-black tracking-tight text-teal-700">StackShift</h1>
+      <p class="text-slate-500 text-sm mt-0.5">Retarget your resume</p>
+    </header>
+
+    <!-- Tab bar -->
+    <nav class="mb-6 flex gap-1 border-b border-slate-300">
+      <button data-tab="resume"
+              class="tab-btn px-5 py-2.5 font-semibold text-sm rounded-t-lg -mb-px border border-b-0">
+        📄 Resume
+      </button>
+      <button data-tab="provider"
+              class="tab-btn px-5 py-2.5 font-semibold text-sm rounded-t-lg -mb-px border border-b-0">
+        🔌 Provider
+      </button>
+      <span id="tab-hint" class="ml-auto self-center text-xs text-slate-400"></span>
+    </nav>
+
+    <!-- Provider tab -->
+    <section id="tab-provider" class="tab-panel mb-6 hidden">
+      <h2 class="font-bold text-lg mb-1">LLM Provider</h2>
+      <p class="text-sm text-slate-500 mb-4">Pick one active window, drop in its key & model. Selection is used when you tailor.</p>
+      <div id="providers" class="grid sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+    </section>
+
+    <!-- Resume tab -->
+    <div id="tab-resume" class="tab-panel">
+    <!-- Inputs on top: resume file + job description side by side -->
+    <section class="bg-white rounded-xl shadow-sm p-5 mb-6">
+      <h2 class="font-bold text-lg mb-3">1 · Inputs</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Resume: file upload + editable text box -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Resume</label>
+          <input id="resume" type="file" accept=".pdf,.docx,.txt,.md"
+                 class="block w-full text-sm mb-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-teal-600 file:text-white hover:file:bg-teal-700 cursor-pointer" />
+          <textarea id="resume_text" rows="12" placeholder="Resume text appears here after upload — or paste it directly…"
+                    class="w-full rounded-md border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+          <p id="resume_note" class="text-xs text-slate-400 mt-1"></p>
+        </div>
+        <!-- Job Description: file upload + editable text box -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Job Description</label>
+          <input id="jd_file" type="file" accept=".pdf,.docx,.txt,.md"
+                 class="block w-full text-sm mb-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer" />
+          <textarea id="jd" rows="12" placeholder="Paste the full job posting here — or upload a file…"
+                    class="w-full rounded-md border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+          <p id="jd_note" class="text-xs text-slate-400 mt-1"></p>
+        </div>
+      </div>
+
+      <!-- Cloud Tech Swap -->
+      <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        <label class="flex items-center justify-between cursor-pointer gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl leading-none">☁️</span>
+              <span class="font-semibold text-slate-800">Cloud Tech Swap</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Translate Job&nbsp;1's core cloud stack to the target cloud.</p>
+          </div>
+          <input id="swap" type="checkbox" class="peer sr-only" />
+          <span class="relative h-6 w-11 shrink-0 rounded-full bg-slate-300 transition-colors peer-checked:bg-teal-600
+                       after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white
+                       after:shadow after:transition-transform peer-checked:after:translate-x-5"></span>
+        </label>
+        <p id="swap-hint" class="mt-3 text-xs text-slate-500 border-t border-slate-200 pt-2"></p>
+      </div>
+
+      <button id="run"
+              class="mt-5 w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50">
+        Tailor My Resume
+      </button>
+      <p id="status" class="mt-3 text-sm text-slate-500 hidden"></p>
+    </section>
+
+    <!-- Detected context below, full width -->
+    <section class="bg-white rounded-xl shadow-sm p-5 mb-6">
+      <h2 class="font-bold text-lg mb-3">2 · Detected Context</h2>
+      <div id="context" class="text-sm text-slate-400">Run the tailor to detect your industry and keyword gaps.</div>
+    </section>
+
+    <!-- Tailored resume output -->
+    <section id="output" class="mt-6 hidden">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-lg">3 · Tailored Resume</h2>
+        <div class="flex gap-2">
+          <button id="copy" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded-md hover:bg-slate-700">Copy</button>
+          <button id="dl-docx" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-500">Download DOCX</button>
+          <button id="dl-pdf" class="text-sm bg-rose-600 text-white px-3 py-1.5 rounded-md hover:bg-rose-500">Download PDF</button>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-6 ring-2 ring-teal-100 max-w-4xl mx-auto">
+        <div id="tailored" class="prose-resume text-slate-700"></div>
+      </div>
+    </section>
+    </div><!-- /tab-resume -->
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    // Prefix API calls with the configured backend base (empty = same origin).
+    const API_BASE = (window.STACKSHIFT_API_BASE || "").replace(/\/+$/, "");
+    const api = (path) => API_BASE + path;
+    let tailoredMarkdown = "";
+    let downloadBase = "tailored_resume";
+    let activeProvider = "openai";
+
+    // --- provider windows -----------------------------------------------
+    // Fallback metadata so the windows render even before/without the backend.
+    const FALLBACK_PROVIDERS = [
+      { id: "openrouter", label: "OpenRouter", default_model: "openai/gpt-4o-mini", env_key: "OPENROUTER_API_KEY", has_env_key: false,
+        models: ["openai/gpt-4o-mini","openai/gpt-4o","anthropic/claude-sonnet-5","anthropic/claude-opus-4.8","google/gemini-2.0-flash-001","google/gemini-2.5-pro","meta-llama/llama-3.3-70b-instruct","moonshotai/kimi-k2","deepseek/deepseek-chat","mistralai/mistral-large"] },
+      { id: "anthropic", label: "Anthropic (Claude)", default_model: "claude-sonnet-5", env_key: "ANTHROPIC_API_KEY", has_env_key: false,
+        models: ["claude-opus-4-8","claude-sonnet-5","claude-haiku-4-5-20251001","claude-fable-5","claude-3-7-sonnet-latest","claude-3-5-haiku-latest"] },
+      { id: "openai", label: "OpenAI", default_model: "gpt-4o-mini", env_key: "OPENAI_API_KEY", has_env_key: false,
+        models: ["gpt-4o-mini","gpt-4o","gpt-4.1","gpt-4.1-mini","o4-mini","o3","o3-mini"] },
+      { id: "kimi", label: "Kimi (Moonshot)", default_model: "kimi-k2-0711-preview", env_key: "KIMI_API_KEY", has_env_key: false,
+        models: ["kimi-k2-0711-preview","kimi-latest","moonshot-v1-8k","moonshot-v1-32k","moonshot-v1-128k","moonshot-v1-auto"] },
+    ];
+    // Preferred display order.
+    const ORDER = ["openrouter", "anthropic", "openai", "kimi"];
+
+    function providerWindow(p, i) {
+      const checked = i === 0 ? "checked" : "";
+      const envBadge = p.has_env_key
+        ? `<span class="text-xs text-emerald-600">● ${p.env_key} loaded from .env</span>`
+        : `<span class="text-xs text-slate-400">${p.env_key} not set — enter key below</span>`;
+      return `
+      <div class="prov-win rounded-xl border border-slate-300 bg-white shadow-sm overflow-hidden transition" data-id="${p.id}">
+        <div class="flex items-center gap-2 bg-slate-800 px-3 py-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+          <span class="ml-1 text-xs font-semibold text-slate-200">${p.label}</span>
+        </div>
+        <div class="p-3 space-y-2">
+          <label class="flex items-center gap-2 text-sm font-semibold">
+            <input type="radio" name="provider" value="${p.id}" ${checked} class="accent-teal-600 prov-radio" />
+            Use this provider
+          </label>
+          <div>
+            <label class="block text-xs font-medium text-slate-500 mb-0.5">API key</label>
+            <input type="password" data-role="key" placeholder="paste ${p.label} key"
+                   class="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-0.5">
+              <label class="block text-xs font-medium text-slate-500">Model <span data-role="model-count" class="text-slate-400"></span></label>
+              <button type="button" data-role="refresh"
+                      class="text-xs text-teal-600 hover:text-teal-800">↻ Refresh live</button>
+            </div>
+            <select data-role="model-select"
+                    class="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none">
+              ${(p.models || [p.default_model]).map((m) =>
+                `<option value="${m}" ${m === p.default_model ? "selected" : ""}>${m}</option>`).join("")}
+              <option value="__custom__">✎ Custom…</option>
+            </select>
+            <input type="text" data-role="model-custom" placeholder="custom model id"
+                   class="mt-1 hidden w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+            <p data-role="model-note" class="text-xs text-slate-400 mt-0.5">seed list — click ↻ for live</p>
+          </div>
+          ${envBadge}
+        </div>
+      </div>`;
+    }
+
+    function paintActive() {
+      document.querySelectorAll(".prov-win").forEach((w) => {
+        const on = w.dataset.id === activeProvider;
+        w.classList.toggle("ring-2", on);
+        w.classList.toggle("ring-teal-500", on);
+        w.classList.toggle("opacity-60", !on);
+      });
+      const win = document.querySelector(`.prov-win[data-id="${activeProvider}"]`);
+      const label = win?.querySelector(".text-slate-200")?.textContent?.trim() || activeProvider;
+      $("tab-hint").textContent = "Active provider: " + label;
+    }
+
+    async function loadProviders() {
+      let list = FALLBACK_PROVIDERS;
+      try {
+        const res = await fetch(api("/api/providers"));
+        if (res.ok) list = (await res.json()).providers || list;
+      } catch (_) { /* static preview — use fallback */ }
+      list.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+      $("providers").innerHTML = list.map(providerWindow).join("");
+      activeProvider = list[0]?.id || "openai";
+      document.querySelectorAll(".prov-radio").forEach((r) =>
+        r.addEventListener("change", (e) => { activeProvider = e.target.value; paintActive(); })
+      );
+      // Custom… reveals a free-text model box.
+      document.querySelectorAll('[data-role="model-select"]').forEach((sel) =>
+        sel.addEventListener("change", (e) => {
+          const custom = e.target.closest(".prov-win").querySelector('[data-role="model-custom"]');
+          custom.classList.toggle("hidden", e.target.value !== "__custom__");
+        })
+      );
+      // Live model refresh per window.
+      document.querySelectorAll('[data-role="refresh"]').forEach((btn) =>
+        btn.addEventListener("click", () => refreshModels(btn.closest(".prov-win")))
+      );
+      // Auto-fetch live list once a key is entered (on blur).
+      document.querySelectorAll('[data-role="key"]').forEach((k) =>
+        k.addEventListener("blur", (e) => {
+          if (e.target.value.trim()) refreshModels(e.target.closest(".prov-win"));
+        })
+      );
+      paintActive();
+      // Auto-pull live lists where we can without user input:
+      // OpenRouter (public API) + any provider whose key is already in .env.
+      list.forEach((p) => {
+        if (p.id === "openrouter" || p.has_env_key) {
+          const win = document.querySelector(`.prov-win[data-id="${p.id}"]`);
+          if (win) refreshModels(win);
+        }
+      });
+    }
+
+    function fillModelSelect(win, models, keepValue) {
+      const sel = win.querySelector('[data-role="model-select"]');
+      const prev = keepValue || sel.value;
+      sel.innerHTML =
+        models.map((m) => `<option value="${m}">${m}</option>`).join("") +
+        `<option value="__custom__">✎ Custom…</option>`;
+      // Restore prior selection if still present, else pick first real model.
+      sel.value = models.includes(prev) ? prev : (models[0] || "__custom__");
+      win.querySelector('[data-role="model-count"]').textContent =
+        models.length ? `(${models.length})` : "";
+    }
+
+    async function refreshModels(win) {
+      const id = win.dataset.id;
+      const note = win.querySelector('[data-role="model-note"]');
+      const key = win.querySelector('[data-role="key"]')?.value.trim() || "";
+      note.textContent = "fetching live models…";
+      const fd = new FormData();
+      fd.append("provider", id);
+      fd.append("api_key", key);
+      try {
+        const res = await fetch(api("/api/models"), { method: "POST", body: fd });
+        const data = await res.json();
+        fillModelSelect(win, data.models || []);
+        note.textContent = (data.source === "live" ? "🟢 live · " : "⚪ ") + (data.note || "");
+      } catch (e) {
+        note.textContent = "live fetch needs the server running (uvicorn)";
+      }
+    }
+
+    function activeProviderConfig() {
+      const win = document.querySelector(`.prov-win[data-id="${activeProvider}"]`);
+      const sel = win?.querySelector('[data-role="model-select"]');
+      let model = sel?.value || "";
+      if (model === "__custom__") {
+        model = win?.querySelector('[data-role="model-custom"]')?.value.trim() || "";
+      }
+      return {
+        provider: activeProvider,
+        api_key: win?.querySelector('[data-role="key"]')?.value.trim() || "",
+        model,
+      };
+    }
+
+    // --- tab switching --------------------------------------------------
+    function showTab(name) {
+      document.querySelectorAll(".tab-panel").forEach((p) =>
+        p.classList.toggle("hidden", p.id !== "tab-" + name)
+      );
+      document.querySelectorAll(".tab-btn").forEach((b) =>
+        b.classList.toggle("active", b.dataset.tab === name)
+      );
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    document.querySelectorAll(".tab-btn").forEach((b) =>
+      b.addEventListener("click", () => showTab(b.dataset.tab))
+    );
+    showTab("resume");
+
+    loadProviders();
+
+    function chips(list, color) {
+      if (!list || !list.length) return '<span class="text-slate-400">none</span>';
+      return list.map(k =>
+        `<span class="inline-block ${color} rounded-full px-2 py-0.5 text-xs mr-1 mb-1">${k}</span>`
+      ).join("");
+    }
+
+    // Upload a file -> extract its text -> drop it into the given textarea.
+    async function extractInto(fileInput, textarea, note) {
+      const f = fileInput.files[0];
+      if (!f) return;
+      note.textContent = "reading " + f.name + "…";
+      const fd = new FormData();
+      fd.append("file", f);
+      try {
+        const res = await fetch(api("/api/extract"), { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "extract failed");
+        textarea.value = data.text || "";
+        if (!data.chars) {
+          note.innerHTML = `<span class="text-rose-600">⚠ ${f.name}: 0 text extracted — looks like a scanned/image file. Paste the text manually, or use a text-based PDF/DOCX.</span>`;
+        } else {
+          note.innerHTML = `<span class="text-emerald-600">✓ ${f.name} — ${data.chars} chars extracted (editable)</span>`;
+        }
+      } catch (e) {
+        note.textContent = "Could not extract: " + e.message + " (server must be running)";
+      }
+    }
+    $("resume").addEventListener("change", () =>
+      extractInto($("resume"), $("resume_text"), $("resume_note")));
+    $("jd_file").addEventListener("change", () =>
+      extractInto($("jd_file"), $("jd"), $("jd_note")));
+
+    async function run() {
+      const resumeTxt = $("resume_text").value.trim();
+      const jd = $("jd").value.trim();
+      if (resumeTxt.length < 40) { alert("Upload or paste your resume first."); return; }
+      if (jd.length < 40) { alert("Upload or paste a fuller job description."); return; }
+
+      const fd = new FormData();
+      fd.append("resume_text", resumeTxt);
+      fd.append("job_description", jd);
+      fd.append("cloud_swap", $("swap").checked);
+      const pc = activeProviderConfig();
+      fd.append("provider", pc.provider);
+      fd.append("api_key", pc.api_key);
+      fd.append("model", pc.model);
+
+      $("run").disabled = true;
+      $("status").classList.add("hidden");
+      const started = performance.now();
+      const tick = () =>
+        ($("run").textContent = "Tailoring… " + fmtElapsed(performance.now() - started));
+      tick();
+      const timer = setInterval(tick, 250);
+
+      try {
+        const res = await fetch(api("/api/tailor"), { method: "POST", body: fd });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new Error(err.detail || "Request failed");
+        }
+        const data = await res.json();
+        clearInterval(timer);
+        render(data);
+        $("status").classList.remove("hidden");
+        $("status").textContent = "✓ Done in " + fmtElapsed(performance.now() - started);
+      } catch (e) {
+        clearInterval(timer);
+        $("status").classList.remove("hidden");
+        $("status").textContent = "Error after " + fmtElapsed(performance.now() - started) + ": " + e.message;
+      } finally {
+        $("run").disabled = false;
+        $("run").textContent = "Tailor My Resume";
+      }
+    }
+
+    // "5 sec" under a minute, "1 min 05 sec" at/over a minute.
+    function fmtElapsed(ms) {
+      const total = Math.floor(ms / 1000);
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return m > 0 ? `${m} min ${String(s).padStart(2, "0")} sec` : `${s} sec`;
+    }
+
+    function render(data) {
+      const c = data.context || {};
+      const mode = data.toggles.cloud_swap
+        ? '<span class="bg-teal-100 text-teal-700 rounded px-1.5 py-0.5 text-xs font-semibold">SWAP ON · migrate Job 1</span>'
+        : '<span class="bg-slate-200 text-slate-600 rounded px-1.5 py-0.5 text-xs font-semibold">SWAP OFF · native coexistence</span>';
+      $("context").innerHTML = `
+        <dl class="space-y-1.5 text-slate-700">
+          <div><dt class="inline font-semibold">Target cloud:</dt> <span class="font-bold text-teal-700">${c.target_cloud || "—"}</span></div>
+          <div><dt class="inline font-semibold">Industry:</dt> ${c.industry || "—"}</div>
+          <div><dt class="inline font-semibold">Metric style:</dt> ${c.metric_style || "—"}</div>
+          <div><dt class="inline font-semibold">Mode:</dt> ${mode}</div>
+        </dl>
+        <div class="mt-3">
+          <p class="font-semibold text-slate-600 mb-1">JD target tools</p>
+          <div>${chips(c.target_tools, "bg-indigo-100 text-indigo-700")}</div>
+        </div>
+        <div class="mt-3">
+          <p class="font-semibold text-slate-600 mb-1">Already in resume</p>
+          <div>${chips(data.present_keywords, "bg-emerald-100 text-emerald-700")}</div>
+        </div>
+        <div class="mt-3">
+          <p class="font-semibold text-slate-600 mb-1">Missing → injected</p>
+          <div>${chips(data.missing_keywords, "bg-rose-100 text-rose-700")}</div>
+        </div>`;
+
+      tailoredMarkdown = data.tailored_markdown;
+      downloadBase = buildDownloadName(tailoredMarkdown, (data.context || {}).company);
+      $("tailored").innerHTML = marked.parse(displayMarkdown(tailoredMarkdown));
+      $("output").classList.remove("hidden");
+      $("output").scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Merge the "# Name" line and the first "**Title**" headline into one
+    // "# Name • Title" line for the on-screen preview only (downloads use raw md).
+    // "Full Name_Company" from the tailored markdown + detected company.
+    function buildDownloadName(md, company) {
+      const nameLine = md.split("\n").find((l) => l.trim().startsWith("# "));
+      const name = nameLine ? nameLine.replace(/^#\s+/, "").trim() : "Tailored Resume";
+      const parts = [name];
+      if (company && company.trim()) parts.push(company.trim());
+      return parts.join("_").replace(/[\/\\:*?"<>|]/g, "").replace(/\s+/g, " ").trim();
+    }
+
+    function cleanContact(line) {
+      const parts = line.split(/[|•]/).map((p) => p.trim()).filter(Boolean);
+      const phone = parts.find((p) => /\d{3}[)\s.\-]*\d{3}[\s.\-]*\d{4}/.test(p));
+      const email = parts.find((p) => p.includes("@"));
+      const keep = [phone, email].filter(Boolean);
+      return keep.length ? keep.join(" | ") : line;
+    }
+
+    // Bold the label up to the first colon; keep bullet prefix if present.
+    function boldLabel(line) {
+      const bullet = /^[-*]\s+/.test(line);
+      let t = line.replace(/\*/g, "").replace(/^[-*]\s+/, "").trim();
+      const idx = t.indexOf(":");
+      if (idx > -1) t = "**" + t.slice(0, idx + 1) + "**" + t.slice(idx + 1);
+      return (bullet ? "- " : "") + t;
+    }
+
+    function esc(x) {
+      return x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // "**Title @ Co | Loc | Sep 2023 – Present**" -> flex row, date right-aligned.
+    function jobRowHTML(text) {
+      const t = text.replace(/\*/g, "").trim();
+      const fields = t.split("|").map((f) => f.trim())
+        .filter((f) => !/^(location\s*)?(not listed|not specified|n\/?a|none|unknown|tbd)$/i.test(f));
+      const di = fields.findIndex((f) => /(19|20)\d{2}|present/i.test(f));
+      let left = t, date = "";
+      if (di > -1) { date = fields[di]; left = fields.filter((_, j) => j !== di).join(" | "); }
+      return `<div class="jobrow"><span>${esc(left)}</span>` +
+             (date ? `<span class="date">${esc(date)}</span>` : "") + `</div>`;
+    }
+
+    function displayMarkdown(md) {
+      let lines = md.replace(/\r\n/g, "\n").split("\n");
+      lines = lines.filter((l) =>
+        !/^\s*[-*_]{3,}\s*$/.test(l) &&           // drop --- rules
+        !/^\s*>/.test(l) &&                        // drop blockquote stubs
+        !/see above|consolidated under/i.test(l)); // drop consolidation notes
+      let nameIdx = -1, titleIdx = -1, inSkills = false, sectionSeen = false;
+      for (let i = 0; i < lines.length; i++) {
+        const s = lines[i].trim();
+        // header: name + title
+        if (nameIdx === -1 && s.startsWith("# ")) { nameIdx = i; continue; }
+        if (titleIdx === -1 && nameIdx !== -1 && !s.startsWith("## ") && /^\*\*(.+)\*\*$/.test(s)) titleIdx = i;
+        // contact line: phone first, email second, drop city/state
+        if (/@/.test(s) && !s.startsWith("#")) lines[i] = cleanContact(s);
+        // section tracking
+        if (s.startsWith("## ")) { sectionSeen = true; inSkills = /skill/i.test(s); }
+        // skills section: bold category labels
+        if (inSkills && s.startsWith("- ")) lines[i] = boldLabel(lines[i]);
+        // technologies line: bold label, blank line before it to break the bullet list
+        else if (/^[-*]?\s*\**\s*technolog/i.test(s)) lines[i] = "\n" + boldLabel(lines[i]);
+        // job / project / education title lines -> right-aligned date row
+        else if (sectionSeen && i !== titleIdx && /^\*\*(.+)\*\*$/.test(s)) lines[i] = "\n" + jobRowHTML(s) + "\n";
+      }
+      if (nameIdx !== -1 && titleIdx !== -1) {
+        const name = lines[nameIdx].replace(/^#\s+/, "").trim();
+        const title = lines[titleIdx].trim().replace(/^\*\*|\*\*$/g, "");
+        lines[nameIdx] = `# ${name}&nbsp;&nbsp;-&nbsp;&nbsp;${title}`;
+        lines.splice(titleIdx, 1);
+      }
+      return lines.join("\n");
+    }
+
+    function saveBlob(blob, name) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    $("copy").onclick = async () => {
+      await navigator.clipboard.writeText(tailoredMarkdown);
+      $("copy").textContent = "Copied!";
+      setTimeout(() => ($("copy").textContent = "Copy"), 1500);
+    };
+
+    async function exportAs(kind, btn) {
+      if (!tailoredMarkdown) { alert("Tailor a resume first."); return; }
+      const label = btn.textContent;
+      btn.textContent = "…"; btn.disabled = true;
+      try {
+        const fd = new FormData();
+        fd.append("markdown", tailoredMarkdown);
+        fd.append("filename", downloadBase);
+        const res = await fetch(api("/api/export/" + kind), { method: "POST", body: fd });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || res.statusText);
+        saveBlob(await res.blob(), downloadBase + "." + kind);
+      } catch (e) {
+        alert(kind.toUpperCase() + " export failed: " + e.message + "\n(server must be running)");
+      } finally {
+        btn.textContent = label; btn.disabled = false;
+      }
+    }
+    $("dl-docx").onclick = () => exportAs("docx", $("dl-docx"));
+    $("dl-pdf").onclick = () => exportAs("pdf", $("dl-pdf"));
+
+    // Cloud Tech Swap live hint.
+    const swapHint = () => {
+      $("swap-hint").innerHTML = $("swap").checked
+        ? '<span class="font-semibold text-teal-700">ON</span> — migrate Job&nbsp;1 fully to the target cloud, then inject the missing tools.'
+        : '<span class="font-semibold text-slate-600">OFF</span> — keep every cloud native; just blend the missing tools into your existing stack.';
+    };
+    $("swap").addEventListener("change", swapHint);
+    swapHint();
+
+    $("run").onclick = run;
+  </script>
+</body>
+</html>
