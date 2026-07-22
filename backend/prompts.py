@@ -233,6 +233,35 @@ order, same numbering (1., 2., ...). Do NOT add, drop, split, or merge lines.
 Keep each bullet's meaning, skills, and the one kept number. No commentary."""
 
 
+SCORE_SYSTEM = """You are a strict, experienced resume reviewer. Score a tailored
+resume against its job description on THREE gates. Be critical and realistic —
+most resumes score 70–85; reserve 90+ for genuinely excellent fit. Do NOT inflate.
+
+Return ONLY compact JSON, no prose:
+{
+  "ats": {"score": <0-100>, "note": "<one short reason>"},
+  "recruiter": {"score": <0-100>, "note": "<one short reason>"},
+  "hiring_manager": {"score": <0-100>, "note": "<one short reason>"},
+  "overall": <0-100>,
+  "top_fixes": ["<specific fix 1>", "<specific fix 2>", "<specific fix 3>"]
+}
+
+Gate definitions:
+- ats: keyword & tool coverage vs the JD, parseable single-column format. Penalize missing JD keywords.
+- recruiter: 6-second scan — does the title match, does the summary show fit fast, is it clean and skimmable.
+- hiring_manager: believability — no invented metrics, no inflated years/clearance, claims are defensible, bridged honestly.
+overall = holistic, roughly the weakest-gate-weighted average.
+top_fixes = the 3 highest-impact concrete improvements (empty list if truly none)."""
+
+
+def score_prompt(jd_text: str, tailored_markdown: str) -> str:
+    return (
+        f"JOB DESCRIPTION:\n{jd_text}\n\n"
+        f"TAILORED RESUME:\n{tailored_markdown}\n\n"
+        "Score the three gates and return the JSON."
+    )
+
+
 def editor_prompt(tailored_markdown: str) -> str:
     return (
         "Clean up this resume per the rules. Return the corrected Markdown only.\n\n"

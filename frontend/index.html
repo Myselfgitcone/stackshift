@@ -93,6 +93,12 @@
       <p id="status" class="mt-3 text-sm text-slate-500 hidden"></p>
     </section>
 
+    <!-- Scores -->
+    <section id="scores-card" class="bg-white rounded-xl shadow-sm p-5 mb-6 hidden">
+      <h2 class="font-bold text-lg mb-3">Resume Score</h2>
+      <div id="scores"></div>
+    </section>
+
     <!-- Detected context below, full width -->
     <section class="bg-white rounded-xl shadow-sm p-5 mb-6">
       <h2 class="font-bold text-lg mb-3">2 · Detected Context</h2>
@@ -123,6 +129,48 @@
     const api = (path) => API_BASE + path;
     let tailoredMarkdown = "";
     let downloadBase = "tailored_resume";
+
+    function renderScores(s) {
+      const card = $("scores-card");
+      if (!s || s.overall == null) { card.classList.add("hidden"); return; }
+      const band = (n) => n >= 85 ? ["bg-emerald-500", "text-emerald-700"]
+                        : n >= 70 ? ["bg-amber-500", "text-amber-700"]
+                        : ["bg-rose-500", "text-rose-700"];
+      const bar = (label, obj) => {
+        const n = Math.round((obj && obj.score) || 0);
+        const [bg, tx] = band(n);
+        return `<div class="mb-3">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="font-semibold">${label}</span>
+            <span class="font-bold ${tx}">${n}</span>
+          </div>
+          <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+            <div class="h-full ${bg} rounded-full" style="width:${n}%"></div>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">${(obj && obj.note) || ""}</p>
+        </div>`;
+      };
+      const ov = Math.round(s.overall || 0);
+      const [ovBg, ovTx] = band(ov);
+      const fixes = (s.top_fixes || []).filter(Boolean);
+      $("scores").innerHTML = `
+        <div class="flex items-center gap-4 mb-4">
+          <div class="flex items-center justify-center h-16 w-16 rounded-full ${ovBg} text-white text-2xl font-black">${ov}</div>
+          <div>
+            <div class="font-bold ${ovTx}">Overall match</div>
+            <div class="text-xs text-slate-500">ATS · Recruiter · Hiring Manager</div>
+          </div>
+        </div>
+        ${bar("🤖 ATS (keyword match)", s.ats)}
+        ${bar("👀 Recruiter (6-sec scan)", s.recruiter)}
+        ${bar("🧑‍💼 Hiring Manager (believable)", s.hiring_manager)}
+        ${fixes.length ? `<div class="mt-3 border-t border-slate-200 pt-3">
+          <p class="font-semibold text-slate-600 mb-1 text-sm">Top fixes</p>
+          <ul class="list-disc pl-5 text-xs text-slate-600 space-y-0.5">
+            ${fixes.map((f) => `<li>${f}</li>`).join("")}
+          </ul></div>` : ""}`;
+      card.classList.remove("hidden");
+    }
 
     function chips(list, color) {
       if (!list || !list.length) return '<span class="text-slate-400">none</span>';
@@ -242,6 +290,7 @@
           <div>${chips(data.missing_keywords, "bg-rose-100 text-rose-700")}</div>
         </div>`;
 
+      renderScores(data.scores || {});
       tailoredMarkdown = data.tailored_markdown;
       downloadBase = buildDownloadName(tailoredMarkdown, (data.context || {}).company);
       $("tailored").innerHTML = marked.parse(displayMarkdown(tailoredMarkdown));

@@ -51,6 +51,7 @@ class TailorResult(BaseModel):
     missing_keywords: list
     original_markdown: str
     tailored_markdown: str
+    scores: dict = {}
     toggles: dict
 
 
@@ -212,12 +213,24 @@ async def tailor(
     # Fixes number-stuffing without ever touching bullet count/structure.
     tailored = _destack_metrics(tailored, cheap_kw)
 
+    # ---- 5. three-gate score (ATS / recruiter / hiring manager), cheap model
+    scores = {}
+    try:
+        scores = llm.chat_json(
+            prompts.SCORE_SYSTEM,
+            prompts.score_prompt(job_description, tailored),
+            **cheap_kw,
+        ) or {}
+    except Exception:  # noqa: BLE001 — scoring is best-effort
+        scores = {}
+
     return TailorResult(
         context=context,
         present_keywords=present,
         missing_keywords=missing,
         original_markdown=resume_text,
         tailored_markdown=tailored,
+        scores=scores,
         toggles={"cloud_swap": cloud_swap},
     )
 
