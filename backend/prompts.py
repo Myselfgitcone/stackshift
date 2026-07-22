@@ -30,6 +30,7 @@ Return ONLY a compact JSON object, no prose, no markdown fences:
 Rules:
 - target_cloud = the single cloud the JD most emphasizes. Only "Multi" if it truly weights two+ equally. "None" if none named.
 - target_tools: 4–12 concrete, resume-worthy items actually named in the JD (services, IaC, orchestration, streaming, warehouses, frameworks). No soft skills.
+- NEVER list years-of-experience, seniority levels, or security clearances (e.g. "13+ years experience", "TS Clearance", "Secret", "Public Trust") as tools — these are NOT injectable and must not appear in target_tools/present/missing.
 - present + missing together should cover target_tools: present = evidenced in resume, missing = not. Cap 'missing' at 12."""
 
 
@@ -170,8 +171,12 @@ GLOBAL RULES
 - Preserve real employers, job titles, dates, education, and certifications.
 - Do NOT invent employers, titles, dates, degrees, or certifications. (Projects MAY be invented.)
 - YEARS OF EXPERIENCE: state exactly what the base resume supports. NEVER inflate
-  to match the JD. If the resume shows 5+ years and the JD asks for 7+, write
-  "5+ years" — do not bump it to 7+. Same for any seniority/scope claim.
+  to match the JD. If the resume shows 5+ years and the JD asks for 13+, write
+  "5+ years" — do not bump it. Ignore any years/seniority value in the missing-tools list.
+- SECURITY CLEARANCE: NEVER claim or imply a clearance (Top Secret, TS, TS/SCI,
+  Secret, Public Trust, "TS-clearable", "clearance-eligible") unless the BASE
+  resume explicitly states it. If the JD requires one and the resume lacks it,
+  OMIT any clearance mention entirely. Same for citizenship claims.
 - SCOPE vs TENURE: keep the number of major initiatives realistic for the role's
   duration and level. Do NOT cram 8 architect-level initiatives into a <2-year
   IC "Engineer" role, and do NOT imply Architect scope under an IC title.

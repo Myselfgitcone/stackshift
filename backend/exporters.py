@@ -162,6 +162,45 @@ def _inline(text: str) -> str:
     return "".join(parts)
 
 
+_CONTENT_KINDS = {"bullet", "skillbullet", "tech", "body"}
+
+
+def _prune_empty(elements):
+    """Drop bulletless job stubs and then empty section headers (kills the
+    duplicate 'Molina (Earlier Engagement)' with no bullets and empty CERTIFICATIONS)."""
+    # Pass 1: in Experience/Projects, a job title needs at least one bullet before
+    # the next title/section. (Education/Certifications titles are fine without one.)
+    keep = [True] * len(elements)
+    cur_sec = ""
+    for i, (kind, text) in enumerate(elements):
+        if kind == "section":
+            cur_sec = text.lower()
+            continue
+        if kind != "jobtitle" or not ("experience" in cur_sec or "project" in cur_sec):
+            continue
+        has = False
+        for j in range(i + 1, len(elements)):
+            k2 = elements[j][0]
+            if k2 in ("jobtitle", "section"):
+                break
+            if k2 in _CONTENT_KINDS:
+                has = True
+                break
+        if not has:
+            keep[i] = False
+    elements = [e for e, k in zip(elements, keep) if k]
+
+    # Pass 2: a section needs ANY element (incl. a job/degree title) before the next section.
+    keep = [True] * len(elements)
+    for i, (kind, _) in enumerate(elements):
+        if kind != "section":
+            continue
+        nxt = elements[i + 1][0] if i + 1 < len(elements) else "section"
+        if nxt == "section":
+            keep[i] = False
+    return [e for e, k in zip(elements, keep) if k]
+
+
 def _split_header(elements):
     name = contact = headline = None
     rest = []
@@ -276,7 +315,7 @@ def _choose_scale(elements):
 
 def to_pdf(md: str) -> bytes:
     _ensure_fonts()
-    return _choose_scale(_classify(md))[1]
+    return _choose_scale(_prune_empty(_classify(md)))[1]
 
 
 # ---------------------------------------------------------------------------
@@ -303,7 +342,7 @@ def to_docx(md: str) -> bytes:
     import docx
     from docx.shared import Inches, Pt, RGBColor
 
-    elements = _classify(md)
+    elements = _prune_empty(_classify(md))
     scale = _choose_scale(elements)[0]  # same auto-fit scale as the PDF
     body = BODY * scale
     name_sz = body + 2

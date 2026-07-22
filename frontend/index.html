@@ -293,12 +293,51 @@
              (date ? `<span class="date">${esc(date)}</span>` : "") + `</div>`;
     }
 
+    // Drop bulletless job-title lines, then empty "## Section" headers
+    // (kills duplicate stub jobs and an empty CERTIFICATIONS section).
+    function pruneEmpty(lines) {
+      const isSection = (l) => /^##\s/.test(l.trim());
+      const isTitle = (l) => /^\*\*.+\*\*$/.test(l.trim());
+      const isBullet = (l) => {
+        const s = l.trim();
+        return s && !s.startsWith("#") && !isTitle(l);  // bullet / tech / body line
+      };
+      // Pass 1: in Experience/Projects, job titles need a bullet before the next
+      // title/section. (Education/Certifications titles are fine without one.)
+      let drop = new Set();
+      let curSec = "";
+      for (let i = 0; i < lines.length; i++) {
+        if (isSection(lines[i])) { curSec = lines[i].toLowerCase(); continue; }
+        if (!isTitle(lines[i]) || !/experience|project/.test(curSec)) continue;
+        let has = false;
+        for (let j = i + 1; j < lines.length; j++) {
+          if (isSection(lines[j]) || isTitle(lines[j])) break;
+          if (isBullet(lines[j])) { has = true; break; }
+        }
+        if (!has) drop.add(i);
+      }
+      lines = lines.filter((_, i) => !drop.has(i));
+      // Pass 2: sections need any non-empty line before the next section.
+      drop = new Set();
+      for (let i = 0; i < lines.length; i++) {
+        if (!isSection(lines[i])) continue;
+        let has = false;
+        for (let j = i + 1; j < lines.length; j++) {
+          if (isSection(lines[j])) break;
+          if (lines[j].trim()) { has = true; break; }
+        }
+        if (!has) drop.add(i);
+      }
+      return lines.filter((_, i) => !drop.has(i));
+    }
+
     function displayMarkdown(md) {
       let lines = md.replace(/\r\n/g, "\n").split("\n");
       lines = lines.filter((l) =>
         !/^\s*[-*_]{3,}\s*$/.test(l) &&           // drop --- rules
         !/^\s*>/.test(l) &&                        // drop blockquote stubs
         !/see above|consolidated under/i.test(l)); // drop consolidation notes
+      lines = pruneEmpty(lines);                    // drop empty sections / bulletless jobs
       let nameIdx = -1, titleIdx = -1, inSkills = false, sectionSeen = false;
       for (let i = 0; i < lines.length; i++) {
         const s = lines[i].trim();
