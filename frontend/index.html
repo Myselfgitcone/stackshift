@@ -7,7 +7,11 @@
   <!-- Backend API base URL. Leave "" when the backend serves this page (local / Railway).
        When hosting the frontend on Vercel, set this to your Railway URL, e.g.
        "https://stackshift-api.up.railway.app" -->
-  <script>window.STACKSHIFT_API_BASE = "";</script>
+  <script>
+    // Local dev (backend serves this page) -> same origin. Hosted (Vercel) -> Railway API.
+    window.STACKSHIFT_API_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+      ? "" : "https://stackshift-production.up.railway.app";
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
