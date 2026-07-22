@@ -151,13 +151,15 @@ async def tailor(
     resume_text: str = Form(...),
     job_description: str = Form(...),
     cloud_swap: bool = Form(False),
-    provider: str = Form("openai"),
-    api_key: str = Form(""),
-    model: str = Form(""),
 ):
-    llm_kw = {"provider": provider, "api_key": api_key or None, "model": model or None}
-    # Analysis + cleanup are mechanical -> run them on the provider's cheap model.
-    cheap_kw = {"provider": provider, "api_key": api_key or None, "model": llm.cheap_model(provider)}
+    # Fixed backend config: Anthropic only. Key from server env (never from client).
+    key = os.getenv("ANTHROPIC_API_KEY")
+    if not key:
+        raise HTTPException(500, "Server is missing ANTHROPIC_API_KEY.")
+    tailor_model = os.getenv("TAILOR_MODEL", "claude-sonnet-4-6")
+    cheap_mdl = os.getenv("CHEAP_MODEL", "claude-haiku-4-5-20251001")
+    llm_kw = {"provider": "anthropic", "api_key": key, "model": tailor_model}   # Sonnet 4-6
+    cheap_kw = {"provider": "anthropic", "api_key": key, "model": cheap_mdl}    # Haiku
     # ---- validate input -----------------------------------------------------
     resume_text = resume_text.strip()
     if len(resume_text) < 40:
