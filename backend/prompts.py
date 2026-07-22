@@ -80,20 +80,13 @@ then ONE final line: `**Technologies Used:** <comma-separated tools actually use
 (the tech line is bold-labeled, not a bullet).
 
 ## Projects
-- EXACTLY 2 projects. Each: `**<Realistic Project Title>**` then ONE bullet
-  (formula, 18–24 words, threads a skill from the Skills section).
-- Composition:
-  * Project 1 = an AI/ML themed project (e.g. RAG assistant, ML pipeline, LLM
-    automation, predictive model) — BUT only if the JD is a tech/data/engineering
-    role. If the JD is NON-technical, make Project 1 adjacent to the JD's domain
-    instead (no forced AI).
-  * Project 2 = adjacent/complementary to the JD — same domain but pulling in
-    NEIGHBORING tools the JD did not list, to show range (not a JD keyword clone).
-- Keep any REAL projects from the resume first; only invent to reach 2.
-- Titles must be realistic and specific (e.g. "Real-Time Fraud Detection Pipeline").
-- Metrics must be MODEST and plausible (e.g. "cut latency 40%") — never wild
-  ("10000x", "$50M saved"). You must be able to defend them in an interview.
-- Do NOT label invented projects as AI-generated.
+- ONLY include this section if the base resume ALREADY lists real projects.
+- If the resume has NO projects, OMIT this whole section entirely — no header,
+  nothing. NEVER invent or fabricate a project.
+- If it does have projects: keep only those real ones (up to 3). For each:
+  `**<Polished Project Title>**` then ONE bullet (formula, 18–24 words, threads a
+  skill from the Skills section). You may sharpen wording and titles, but do not
+  invent new projects, tools, or metrics that weren't in the original.
 
 ## Education
 - `**<Degree and Major>, <University/School> | <Duration> | <Location>**`
