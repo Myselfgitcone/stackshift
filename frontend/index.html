@@ -157,6 +157,18 @@
     $("jd_file").addEventListener("change", () =>
       extractInto($("jd_file"), $("jd"), $("jd_note")));
 
+    // Live char count when typing/pasting directly into a box.
+    function liveCount(area, note) {
+      area.addEventListener("input", () => {
+        const n = area.value.trim().length;
+        note.innerHTML = n
+          ? `<span class="text-emerald-600">✓ ${n} chars (editable)</span>`
+          : "";
+      });
+    }
+    liveCount($("resume_text"), $("resume_note"));
+    liveCount($("jd"), $("jd_note"));
+
     async function run() {
       const resumeTxt = $("resume_text").value.trim();
       const jd = $("jd").value.trim();
