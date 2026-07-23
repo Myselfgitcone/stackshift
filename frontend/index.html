@@ -50,7 +50,10 @@
       <div class="grid md:grid-cols-2 gap-6">
         <!-- Resume: file upload + editable text box -->
         <div>
-          <label class="block text-sm font-semibold mb-1">Resume</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-sm font-semibold">Resume</label>
+            <span id="resume_saved" class="text-xs"></span>
+          </div>
           <input id="resume" type="file" accept=".pdf,.docx,.txt,.md"
                  class="block w-full text-sm mb-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-teal-600 file:text-white hover:file:bg-teal-700 cursor-pointer" />
           <textarea id="resume_text" rows="12" placeholder="Resume text appears here after upload — or paste it directly…"
@@ -206,8 +209,10 @@
         note.textContent = "Could not extract: " + e.message + " (server must be running)";
       }
     }
-    $("resume").addEventListener("change", () =>
-      extractInto($("resume"), $("resume_text"), $("resume_note")));
+    $("resume").addEventListener("change", async () => {
+      await extractInto($("resume"), $("resume_text"), $("resume_note"));
+      $("resume_text").dispatchEvent(new Event("input"));  // persist + refresh saved chip
+    });
     $("jd_file").addEventListener("change", () =>
       extractInto($("jd_file"), $("jd"), $("jd_note")));
 
@@ -238,15 +243,49 @@
     $("jd_url").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); fetchJd(); } });
 
     // Live char count when typing/pasting directly into a box.
-    function liveCount(area, note) {
+    function liveCount(area, note, onChange) {
       area.addEventListener("input", () => {
         const n = area.value.trim().length;
         note.innerHTML = n
           ? `<span class="text-emerald-600">✓ ${n} chars (editable)</span>`
           : "";
+        if (onChange) onChange(area.value);
       });
     }
-    liveCount($("resume_text"), $("resume_note"));
+
+    // --- remember the resume across visits (per browser) ----------------
+    const RESUME_KEY = "stackshift_resume";
+    function showSavedChip() {
+      const saved = localStorage.getItem(RESUME_KEY) || "";
+      const el = $("resume_saved");
+      if (saved.trim()) {
+        el.innerHTML = `<span class="text-emerald-600">✓ Saved resume (${saved.trim().length} chars)</span>
+          <button id="resume_clear" class="ml-2 text-rose-500 hover:text-rose-700 font-semibold">✕ clear</button>`;
+        $("resume_clear").onclick = () => {
+          localStorage.removeItem(RESUME_KEY);
+          $("resume_text").value = "";
+          $("resume_note").innerHTML = "";
+          showSavedChip();
+        };
+      } else {
+        el.innerHTML = "";
+      }
+    }
+    // Load saved resume on start.
+    (function loadSavedResume() {
+      const saved = localStorage.getItem(RESUME_KEY) || "";
+      if (saved.trim() && !$("resume_text").value.trim()) {
+        $("resume_text").value = saved;
+        $("resume_note").innerHTML = `<span class="text-emerald-600">✓ ${saved.trim().length} chars (saved resume)</span>`;
+      }
+      showSavedChip();
+    })();
+
+    liveCount($("resume_text"), $("resume_note"), (val) => {
+      if (val.trim()) localStorage.setItem(RESUME_KEY, val);
+      else localStorage.removeItem(RESUME_KEY);
+      showSavedChip();
+    });
     liveCount($("jd"), $("jd_note"));
 
     async function run() {
