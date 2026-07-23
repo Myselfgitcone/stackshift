@@ -116,6 +116,7 @@
       <div class="flex items-center justify-between mb-3">
         <h2 class="font-bold text-lg">3 · Tailored Resume</h2>
         <div class="flex gap-2">
+          <button id="edit" class="text-sm bg-amber-500 text-white px-3 py-1.5 rounded-md hover:bg-amber-400">✏️ Edit</button>
           <button id="copy" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded-md hover:bg-slate-700">Copy</button>
           <button id="dl-docx" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-500">DOCX</button>
           <button id="dl-pdf" class="text-sm bg-rose-600 text-white px-3 py-1.5 rounded-md hover:bg-rose-500">PDF</button>
@@ -124,6 +125,9 @@
       </div>
       <div class="bg-white rounded-xl shadow-sm p-6 ring-2 ring-teal-100 max-w-4xl mx-auto">
         <div id="tailored" class="prose-resume text-slate-700"></div>
+        <textarea id="tailored_edit" rows="26"
+                  class="hidden w-full font-mono text-xs rounded-md border border-slate-300 p-3 focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+        <p id="edit_hint" class="hidden text-xs text-slate-400 mt-2">Editing markdown — click “Save” to apply. Downloads use your edits.</p>
       </div>
     </section>
     </div><!-- /tab-resume -->
@@ -330,6 +334,12 @@
       downloadCompany = ((data.context || {}).company || "").trim();
       downloadBase = buildDownloadName(tailoredMarkdown, downloadCompany);
       $("tailored").innerHTML = marked.parse(displayMarkdown(tailoredMarkdown));
+      // reset edit mode for a fresh tailor
+      editing = false;
+      $("tailored").classList.remove("hidden");
+      $("tailored_edit").classList.add("hidden");
+      $("edit_hint").classList.add("hidden");
+      $("edit").textContent = "✏️ Edit";
       $("output").classList.remove("hidden");
       $("output").scrollIntoView({ behavior: "smooth" });
     }
@@ -456,6 +466,28 @@
       a.click();
       URL.revokeObjectURL(a.href);
     }
+
+    // Edit / Save the tailored resume. Edits update tailoredMarkdown, so all
+    // downloads (PDF/DOCX/TXT) and the preview reflect the changes.
+    let editing = false;
+    $("edit").onclick = () => {
+      editing = !editing;
+      if (editing) {
+        $("tailored_edit").value = tailoredMarkdown;
+        $("tailored").classList.add("hidden");
+        $("tailored_edit").classList.remove("hidden");
+        $("edit_hint").classList.remove("hidden");
+        $("edit").textContent = "💾 Save";
+      } else {
+        tailoredMarkdown = $("tailored_edit").value;
+        downloadBase = buildDownloadName(tailoredMarkdown, downloadCompany);
+        $("tailored").innerHTML = marked.parse(displayMarkdown(tailoredMarkdown));
+        $("tailored").classList.remove("hidden");
+        $("tailored_edit").classList.add("hidden");
+        $("edit_hint").classList.add("hidden");
+        $("edit").textContent = "✏️ Edit";
+      }
+    };
 
     $("copy").onclick = async () => {
       await navigator.clipboard.writeText(tailoredMarkdown);
