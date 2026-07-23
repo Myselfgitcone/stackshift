@@ -584,21 +584,26 @@
           [downloadBase + ".docx", docx],
           [downloadBase + ".txt", txt],
         ];
+        let savedToFolder = false;
         if (window.showDirectoryPicker) {
-          const parent = await window.showDirectoryPicker({ mode: "readwrite" });
-          // Create a subfolder named after the company (fallback: candidate name).
-          const folderName = (downloadCompany || downloadBase)
-            .replace(/[\/\\:*?"<>|]/g, "").replace(/\s+/g, " ").trim() || "Tailored Resume";
-          const dir = await parent.getDirectoryHandle(folderName, { create: true });
-          for (const [name, blob] of files) {
-            const fh = await dir.getFileHandle(name, { create: true });
-            const w = await fh.createWritable();
-            await w.write(blob); await w.close();
+          try {
+            const parent = await window.showDirectoryPicker({ mode: "readwrite" });
+            const folderName = (downloadCompany || downloadBase)
+              .replace(/[\/\\:*?"<>|]/g, "").replace(/\s+/g, " ").trim() || "Tailored Resume";
+            const dir = await parent.getDirectoryHandle(folderName, { create: true });
+            for (const [name, blob] of files) {
+              const fh = await dir.getFileHandle(name, { create: true });
+              const w = await fh.createWritable();
+              await w.write(blob); await w.close();
+            }
+            savedToFolder = true;
+            alert(`Saved all 3 files to folder "${folderName}".`);
+          } catch (pickErr) {
+            // Chrome blocks sensitive folders (Downloads/Desktop) or user cancelled
+            // -> fall through to normal downloads so files still arrive.
           }
-          alert(`Saved all 3 files to folder "${folderName}".`);
-        } else {
-          files.forEach(([name, blob]) => saveBlob(blob, name)); // -> Downloads folder
         }
+        if (!savedToFolder) files.forEach(([name, blob]) => saveBlob(blob, name)); // -> Downloads
       } catch (e) {
         if (e.name !== "AbortError") alert("Download all failed: " + (e.message || e));
       } finally {
