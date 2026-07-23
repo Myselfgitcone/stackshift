@@ -205,6 +205,14 @@ async def tailor(
             "present": [],
             "missing": [],
         }
+    # Guard: a cloud swap must only fire when the JD LITERALLY names that cloud.
+    # Kills phantom swaps (e.g. GCP invented for a cloud-agnostic Netflix JD).
+    _tc = (context.get("target_cloud") or "").strip()
+    _jd = job_description.lower()
+    _cloud_terms = {"AWS": ("aws", "amazon web"), "Azure": ("azure",), "GCP": ("gcp", "google cloud")}
+    if _tc in _cloud_terms and not any(term in _jd for term in _cloud_terms[_tc]):
+        context["target_cloud"] = "None"
+
     present = context.get("present", []) or []
     missing = context.get("missing", []) or []
 

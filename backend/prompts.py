@@ -29,7 +29,11 @@ Return ONLY a compact JSON object, no prose, no markdown fences:
 }
 
 Rules:
-- target_cloud = the single cloud the JD most emphasizes. Only "Multi" if it truly weights two+ equally. "None" if none named.
+- target_cloud = a cloud ONLY if the JD text LITERALLY names it (the words "AWS"/
+  "Amazon Web Services", "Azure", or "GCP"/"Google Cloud" must actually appear).
+  If no cloud is explicitly named, target_cloud MUST be "None". Do NOT infer a
+  cloud from the company, domain, or tools — a Spark/Flink/data role that names no
+  cloud is "None". Use "Multi" only if two+ are named and weighted equally.
 - target_tools: 4–12 concrete, resume-worthy items actually named in the JD (services, IaC, orchestration, streaming, warehouses, frameworks). No soft skills.
 - NEVER list years-of-experience, seniority levels, or security clearances (e.g. "13+ years experience", "TS Clearance", "Secret", "Public Trust") as tools — these are NOT injectable and must not appear in target_tools/present/missing.
 - present + missing together should cover target_tools: present = evidenced in resume, missing = not. Cap 'missing' at 12."""
