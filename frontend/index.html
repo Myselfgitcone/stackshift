@@ -136,6 +136,7 @@
     const api = (path) => API_BASE + path;
     let tailoredMarkdown = "";
     let downloadBase = "tailored_resume";
+    let downloadCompany = "";
 
     function renderScores(s) {
       const card = $("scores-card");
@@ -326,7 +327,8 @@
 
       renderScores(data.scores || {});
       tailoredMarkdown = data.tailored_markdown;
-      downloadBase = buildDownloadName(tailoredMarkdown, (data.context || {}).company);
+      downloadCompany = ((data.context || {}).company || "").trim();
+      downloadBase = buildDownloadName(tailoredMarkdown, downloadCompany);
       $("tailored").innerHTML = marked.parse(displayMarkdown(tailoredMarkdown));
       $("output").classList.remove("hidden");
       $("output").scrollIntoView({ behavior: "smooth" });
@@ -504,13 +506,17 @@
           [downloadBase + ".txt", txt],
         ];
         if (window.showDirectoryPicker) {
-          const dir = await window.showDirectoryPicker({ mode: "readwrite" });
+          const parent = await window.showDirectoryPicker({ mode: "readwrite" });
+          // Create a subfolder named after the company (fallback: candidate name).
+          const folderName = (downloadCompany || downloadBase)
+            .replace(/[\/\\:*?"<>|]/g, "").replace(/\s+/g, " ").trim() || "Tailored Resume";
+          const dir = await parent.getDirectoryHandle(folderName, { create: true });
           for (const [name, blob] of files) {
             const fh = await dir.getFileHandle(name, { create: true });
             const w = await fh.createWritable();
             await w.write(blob); await w.close();
           }
-          alert("Saved all 3 files to the chosen folder.");
+          alert(`Saved all 3 files to folder "${folderName}".`);
         } else {
           files.forEach(([name, blob]) => saveBlob(blob, name)); // -> Downloads folder
         }
