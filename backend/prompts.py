@@ -106,12 +106,23 @@ it as something the candidate DID at that real job, in plain professional Englis
 
 DO:
 - REWRITE the JD's requirement — never paste the JD sentence verbatim. Change the
-  words, convert "you will…" (employer wish) into "Designed / Built / Ensured…"
-  (candidate's past achievement), and anchor it to the job's real context.
+  words, convert "you will…" (employer wish) into a past achievement, and anchor it
+  to the job's real context.
 - Cover the JD's key responsibilities across the bullets; weave in the JD's tools.
 - Vary wording so the SAME duty phrased in two jobs never reads identically.
-- Vary opening verbs (Designed, Built, Implemented, Ensured, Collaborated, Optimized,
-  Migrated, Maintained, Led, Automated, Analyzed, Documented…).
+
+VERB REGISTER — match the JD's seniority (critical):
+- Read the verbs the JD uses and mirror that LEVEL. Do not default to builder verbs.
+- If the JD is ARCHITECT / LEAD / STRATEGY level (uses define, architect, govern,
+  establish, oversee, drive, lead, act as authority, mentor, influence): lead at
+  least 2–3 bullets PER JOB with those verbs — Defined, Architected, Governed,
+  Established, Led, Directed, Oversaw, Standardized, Mentored — NOT "Built /
+  Implemented / Configured / Provisioned" (those read builder-level, too junior).
+  e.g. "Engineered entity resolution logic to deduplicate…" →
+       "Architected an entity-resolution framework that deduplicated…".
+- If the JD is an IC / hands-on engineer role: builder verbs (Built, Developed,
+  Implemented, Optimized) are correct — do not force architect verbs.
+- Either way, vary the opening verbs so bullets don't read repetitively.
 
 DO NOT:
 - Do NOT copy JD lines word-for-word.
