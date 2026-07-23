@@ -180,17 +180,20 @@ Cloud-neutral tools (Terraform, Kafka, Airflow, Spark, dbt) are NEVER translated
   swap the cloud provider + native services to the target cloud in JOB 1 AND JOB 2
   ONLY (the two most recent). Leave Job 3, 4, 5… on their real native clouds for
   authenticity. If there is only ONE job, swap just Job 1.
-- IF cloud_swap = FALSE, or NO target cloud is detected (e.g. an on-prem
-  Oracle/SQL-Server/database role that names no cloud):
+- IF cloud_swap = FALSE, or NO target cloud is detected (e.g. a Snowflake/dbt
+  analytics role, or an Oracle/SQL-Server role, that names no AWS/Azure/GCP):
   * Do NOT swap or remove any cloud. **KEEP the candidate's real cloud/platform
-    tech from the base resume in every job** (AWS, Databricks, Azure, Spark, etc.).
-  * **BLEND the JD's tools ON TOP of that real stack** — do not replace it. The
-    bullet should show BOTH the genuine platform AND the JD tool together.
-    Example (DB-developer JD, no cloud): "On AWS and Databricks, developed
-    data-processing logic using SQL/PL-SQL and SSIS-style ETL across supply-chain
-    systems." → real cloud kept + Oracle/SSIS added.
-  * Never write a bullet that erases the candidate's real platform just to insert
-    a JD keyword. Layer, don't replace.
+    tech from the base resume in EVERY job** (AWS, Azure, GCP, Databricks, Spark…).
+  * MANDATORY: each job's `Technologies Used:` line MUST still contain the real
+    cloud/platform that job used in the base resume. If the base shows AWS (S3,
+    EMR, Glue) at a job, AWS MUST appear in that job's Technologies Used — you may
+    ADD the JD's tools (e.g. Snowflake, dbt), but you may NEVER DROP the real cloud.
+  * **BLEND the JD's tools ON TOP of the real stack** — never replace it. Show BOTH
+    the genuine platform AND the JD tool together. Example (Snowflake/dbt JD, no
+    cloud named): "On AWS and Databricks, modeled MART-layer data products in dbt
+    and Snowflake…" → real AWS/Databricks kept + Snowflake/dbt added.
+  * A JD not mentioning a cloud is NOT permission to hide the candidate's real
+    cloud. Layer, never erase.
 
 BRIDGING (honest stretch): when the JD wants hands-on experience the candidate's
 base resume does NOT show, do not claim it as a standalone past job duty. Anchor it
