@@ -276,6 +276,7 @@ def _render_pdf(elements, scale):
                 lp = Paragraph("<b>" + _inline(left) + "</b>", st_job)
                 rp = Paragraph("<b>" + escape(date) + "</b>", st_job_r)
                 t = Table([[lp, rp]], colWidths=[usable_w * 0.72, usable_w * 0.28])
+                t.hAlign = "LEFT"  # align job title with section headers, not frame edge
                 t.setStyle(TableStyle([
                     ("VALIGN", (0, 0), (-1, -1), "BOTTOM"),
                     ("LEFTPADDING", (0, 0), (-1, -1), 0),

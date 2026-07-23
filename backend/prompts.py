@@ -79,6 +79,8 @@ For each job, in this exact shape:
 `**<Job Title> @ <Company> | <Location> | <Duration>**`   (Duration is the LAST | field, e.g. "Sep 2023 – Present")
 then the LADDER bullets (STYLE below),
 then ONE final line: `**Technologies Used:** <comma-separated tools for THAT job>`
+EVERY job MUST end with its own Technologies Used line — never omit it, even when
+trimming to fit two pages. No job may be left without one.
 
 ## Projects
 - ONLY if the base resume ALREADY lists real projects. If none, OMIT entirely
