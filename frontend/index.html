@@ -128,7 +128,7 @@
 
       <!-- Cloud Tech Swap -->
       <div class="mt-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4">
-        <label class="flex items-center justify-between cursor-pointer gap-4">
+        <div class="flex items-center justify-between gap-4">
           <div>
             <div class="flex items-center gap-2">
               <span class="text-2xl leading-none">☁️</span>
@@ -136,11 +136,13 @@
             </div>
             <p class="text-xs text-slate-500 mt-0.5">Translate Job&nbsp;1's core cloud stack to the target cloud.</p>
           </div>
-          <input id="swap" type="checkbox" class="peer sr-only" />
-          <span class="relative h-6 w-11 shrink-0 rounded-full bg-slate-300 transition-colors peer-checked:bg-teal-600
-                       after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white
-                       after:shadow after:transition-transform peer-checked:after:translate-x-5"></span>
-        </label>
+          <label class="cursor-pointer shrink-0">
+            <input id="swap" type="checkbox" class="peer sr-only" />
+            <span class="block relative h-6 w-11 rounded-full bg-slate-300 transition-colors peer-checked:bg-teal-600
+                         after:absolute after:top-0.5 after:left-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white
+                         after:shadow after:transition-transform peer-checked:after:translate-x-5"></span>
+          </label>
+        </div>
         <p id="swap-hint" class="mt-3 text-xs text-slate-500 border-t border-slate-200 pt-2"></p>
       </div>
 
