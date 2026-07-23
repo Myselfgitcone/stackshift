@@ -109,6 +109,19 @@ async def models(provider: str = Form(...), api_key: str = Form("")):
     return llm.list_models(provider, api_key or None)
 
 
+@app.post("/api/fetch-jd")
+async def fetch_jd_endpoint(url: str = Form(...)):
+    """Fetch a job description from a URL (LinkedIn guest / readability extract)."""
+    from backend import jdfetch
+
+    try:
+        return jdfetch.fetch_jd(url)
+    except RuntimeError as exc:
+        raise HTTPException(422, str(exc))
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(422, f"Could not read that link: {exc}")
+
+
 @app.post("/api/extract")
 async def extract(file: UploadFile = File(...)):
     """Extract plain text from an uploaded PDF/DOCX/TXT so the UI can show it."""

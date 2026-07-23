@@ -21,7 +21,8 @@ Return ONLY a compact JSON object, no prose, no markdown fences:
   "target_cloud": "GCP" | "AWS" | "Azure" | "Multi" | "None",
   "company": "<the hiring company name from the JD, or '' if not stated>",
   "target_tools": ["<concrete tool/service/framework named in the JD, e.g. 'Terraform', 'Kafka', 'Airflow', 'BigQuery', 'Dataflow'>"],
-  "industry": "<broad field, e.g. 'Data Engineering', 'DevOps', 'ML Platform'>",
+  "industry": "<the COMPANY's real industry sector, e.g. 'Energy / Oil & Gas', 'Healthcare', 'Financial Services', 'Retail' — NOT the job's role. If unclear, ''>",
+  "role_domain": "<the role's technical domain, e.g. 'Data Engineering', 'MDM / Data Architecture'>",
   "metric_style": "<credible quantified results for this role, e.g. 'pipeline throughput, data freshness, cost, uptime'>",
   "present": ["<JD tool already clearly evidenced in the resume>"],
   "missing": ["<JD tool required but absent or weak in the resume>"]

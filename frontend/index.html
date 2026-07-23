@@ -60,9 +60,15 @@
         <!-- Job Description: file upload + editable text box -->
         <div>
           <label class="block text-sm font-semibold mb-1">Job Description</label>
+          <div class="flex gap-2 mb-2">
+            <input id="jd_url" type="url" placeholder="Paste job link (LinkedIn / career page)…"
+                   class="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
+            <button id="jd_fetch" type="button"
+                    class="shrink-0 bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-1.5 rounded-md">Fetch</button>
+          </div>
           <input id="jd_file" type="file" accept=".pdf,.docx,.txt,.md"
                  class="block w-full text-sm mb-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer" />
-          <textarea id="jd" rows="12" placeholder="Paste the full job posting here — or upload a file…"
+          <textarea id="jd" rows="10" placeholder="…or paste the full job posting here / upload a file"
                     class="w-full rounded-md border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
           <p id="jd_note" class="text-xs text-slate-400 mt-1"></p>
         </div>
@@ -205,6 +211,32 @@
     $("jd_file").addEventListener("change", () =>
       extractInto($("jd_file"), $("jd"), $("jd_note")));
 
+    // Fetch a JD from a URL (LinkedIn / career page). Fails fast -> paste/upload.
+    async function fetchJd() {
+      const url = $("jd_url").value.trim();
+      if (!url) { alert("Paste a job link first."); return; }
+      const btn = $("jd_fetch"), note = $("jd_note");
+      btn.disabled = true; btn.textContent = "Fetching…";
+      note.innerHTML = '<span class="text-slate-500">Reading the link…</span>';
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);  // 15s client cap
+      try {
+        const fd = new FormData(); fd.append("url", url);
+        const res = await fetch(api("/api/fetch-jd"), { method: "POST", body: fd, signal: ctrl.signal });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "fetch failed");
+        $("jd").value = data.text || "";
+        note.innerHTML = `<span class="text-emerald-600">✓ fetched ${data.chars || (data.text||"").length} chars from ${data.source || "web"} (editable)</span>`;
+      } catch (e) {
+        const msg = e.name === "AbortError" ? "took too long" : (e.message || "failed");
+        note.innerHTML = `<span class="text-rose-600">⚠ Couldn't fetch (${msg}) — paste the text or upload a file instead.</span>`;
+      } finally {
+        clearTimeout(timer); btn.disabled = false; btn.textContent = "Fetch";
+      }
+    }
+    $("jd_fetch").addEventListener("click", fetchJd);
+    $("jd_url").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); fetchJd(); } });
+
     // Live char count when typing/pasting directly into a box.
     function liveCount(area, note) {
       area.addEventListener("input", () => {
@@ -272,9 +304,10 @@
         : '<span class="bg-slate-200 text-slate-600 rounded px-1.5 py-0.5 text-xs font-semibold">SWAP OFF · native coexistence</span>';
       $("context").innerHTML = `
         <dl class="space-y-1.5 text-slate-700">
+          <div><dt class="inline font-semibold">Company:</dt> ${c.company ? c.company : '<span class="text-rose-500">Unable to find</span>'}</div>
+          <div><dt class="inline font-semibold">Industry:</dt> ${c.industry || '<span class="text-slate-400">Unable to find</span>'}</div>
+          <div><dt class="inline font-semibold">Role domain:</dt> ${c.role_domain || c.industry || "—"}</div>
           <div><dt class="inline font-semibold">Target cloud:</dt> <span class="font-bold text-teal-700">${c.target_cloud || "—"}</span></div>
-          <div><dt class="inline font-semibold">Industry:</dt> ${c.industry || "—"}</div>
-          <div><dt class="inline font-semibold">Metric style:</dt> ${c.metric_style || "—"}</div>
           <div><dt class="inline font-semibold">Mode:</dt> ${mode}</div>
         </dl>
         <div class="mt-3">
