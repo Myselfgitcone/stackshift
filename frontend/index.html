@@ -60,16 +60,16 @@
         <!-- Job Description: file upload + editable text box -->
         <div>
           <label class="block text-sm font-semibold mb-1">Job Description</label>
-          <div class="flex gap-2 mb-2">
-            <input id="jd_url" type="url" placeholder="Paste job link (LinkedIn / career page)…"
+          <input id="jd_file" type="file" accept=".pdf,.docx,.txt,.md"
+                 class="block w-full text-sm mb-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer" />
+          <textarea id="jd" rows="10" placeholder="Paste the full job posting here — or upload / fetch below"
+                    class="w-full rounded-md border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
+          <div class="flex gap-2 mt-2">
+            <input id="jd_url" type="url" placeholder="…or paste a job link (LinkedIn / career page)"
                    class="flex-1 rounded-md border border-slate-300 px-2 py-1.5 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none" />
             <button id="jd_fetch" type="button"
                     class="shrink-0 bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-1.5 rounded-md">Fetch</button>
           </div>
-          <input id="jd_file" type="file" accept=".pdf,.docx,.txt,.md"
-                 class="block w-full text-sm mb-2 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:bg-slate-700 file:text-white hover:file:bg-slate-600 cursor-pointer" />
-          <textarea id="jd" rows="10" placeholder="…or paste the full job posting here / upload a file"
-                    class="w-full rounded-md border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-teal-500 focus:outline-none"></textarea>
           <p id="jd_note" class="text-xs text-slate-400 mt-1"></p>
         </div>
       </div>
