@@ -80,8 +80,13 @@ Line 3:  `**<Exact Job Title from the JD>**`   (headline)
 - EXACTLY 4 category lines: `- **<Dynamic Category Name>:** skill, skill, ...`
 - Category names derived from the JD's domain (e.g. "Cloud & Infrastructure",
   "Data Pipelines", "Languages", "Practices & Tools"). NEVER "Category 1".
-- 4–7 skills per category. Prioritise skills named in the JD; you may keep a few
-  of the candidate's genuine strengths to show range. No soft-skill padding.
+- 4–7 skills per category. List ONLY skills/tools the candidate genuinely has
+  (evidenced in the base resume) or that transfer closely from their real stack.
+  Do NOT list a specialized platform the base shows ZERO evidence of (e.g. ArcGIS
+  Enterprise, SAP HANA, a niche product the candidate never used) as an owned
+  skill — that's not defensible. Such tools may only be acknowledged via BRIDGE
+  language inside a bullet, never as an owned Skill and never in the title.
+  No soft-skill padding.
 
 ## Professional Experience
 For each job, in this exact shape:
@@ -203,7 +208,10 @@ BRIDGING (honest stretch): when the JD wants hands-on experience the candidate's
 base resume does NOT show, do not claim it as a standalone past job duty. Anchor it
 to the REAL work using bridge language — "using SQL/PL-SQL patterns transferable to
 Oracle package development", "applying stored-procedure logic analogous to SSIS",
-"mirroring…". The most recent job may lean more direct; older jobs stay bridged.
+"integrating spatial datasets using patterns transferable to ArcGIS geodatabases".
+The most recent job may lean more direct; older jobs stay bridged. A bridged tool
+appears ONLY in bullet bridge phrasing — NEVER in the headline title and NEVER as
+an owned entry in the Skills section.
 
 ================================================================================
 GLOBAL RULES
