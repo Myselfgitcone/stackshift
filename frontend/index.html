@@ -117,8 +117,9 @@
         <h2 class="font-bold text-lg">3 · Tailored Resume</h2>
         <div class="flex gap-2">
           <button id="copy" class="text-sm bg-slate-800 text-white px-3 py-1.5 rounded-md hover:bg-slate-700">Copy</button>
-          <button id="dl-docx" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-500">Download DOCX</button>
-          <button id="dl-pdf" class="text-sm bg-rose-600 text-white px-3 py-1.5 rounded-md hover:bg-rose-500">Download PDF</button>
+          <button id="dl-docx" class="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-500">DOCX</button>
+          <button id="dl-pdf" class="text-sm bg-rose-600 text-white px-3 py-1.5 rounded-md hover:bg-rose-500">PDF</button>
+          <button id="dl-all" class="text-sm bg-teal-600 text-white px-3 py-1.5 rounded-md hover:bg-teal-500 font-semibold">⬇ All (PDF+DOCX+TXT)</button>
         </div>
       </div>
       <div class="bg-white rounded-xl shadow-sm p-6 ring-2 ring-teal-100 max-w-4xl mx-auto">
@@ -479,6 +480,47 @@
     }
     $("dl-docx").onclick = () => exportAs("docx", $("dl-docx"));
     $("dl-pdf").onclick = () => exportAs("pdf", $("dl-pdf"));
+
+    async function exportBlob(kind) {
+      const fd = new FormData();
+      fd.append("markdown", tailoredMarkdown);
+      fd.append("filename", downloadBase);
+      const res = await fetch(api("/api/export/" + kind), { method: "POST", body: fd });
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || res.statusText);
+      return res.blob();
+    }
+
+    // Download all 3 into ONE folder (no zip) when the browser supports it;
+    // otherwise fall back to three normal downloads.
+    async function downloadAll(btn) {
+      if (!tailoredMarkdown) { alert("Tailor a resume first."); return; }
+      const label = btn.textContent; btn.textContent = "…"; btn.disabled = true;
+      try {
+        const [pdf, docx] = await Promise.all([exportBlob("pdf"), exportBlob("docx")]);
+        const txt = new Blob([tailoredMarkdown], { type: "text/plain" });
+        const files = [
+          [downloadBase + ".pdf", pdf],
+          [downloadBase + ".docx", docx],
+          [downloadBase + ".txt", txt],
+        ];
+        if (window.showDirectoryPicker) {
+          const dir = await window.showDirectoryPicker({ mode: "readwrite" });
+          for (const [name, blob] of files) {
+            const fh = await dir.getFileHandle(name, { create: true });
+            const w = await fh.createWritable();
+            await w.write(blob); await w.close();
+          }
+          alert("Saved all 3 files to the chosen folder.");
+        } else {
+          files.forEach(([name, blob]) => saveBlob(blob, name)); // -> Downloads folder
+        }
+      } catch (e) {
+        if (e.name !== "AbortError") alert("Download all failed: " + (e.message || e));
+      } finally {
+        btn.textContent = label; btn.disabled = false;
+      }
+    }
+    $("dl-all").onclick = () => downloadAll($("dl-all"));
 
     // Cloud Tech Swap live hint.
     const swapHint = () => {
