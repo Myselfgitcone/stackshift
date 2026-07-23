@@ -55,6 +55,10 @@
     .dark .border-slate-200 { border-color:#334155 !important; }
     .dark textarea, .dark input[type="url"], .dark input[type="text"] { background-color:#334155 !important; color:#e2e8f0 !important; }
     .dark ::placeholder { color:#94a3b8 !important; }
+    /* Keep the tailored resume a real light document: dark text on the white sheet. */
+    .dark .keep-light, .dark .keep-light .prose-resume { color:#111 !important; }
+    .dark .keep-light .prose-resume strong, .dark .keep-light .prose-resume h1 { color:#000 !important; }
+    .dark .keep-light .prose-resume .jobrow .date { color:#555 !important; }
   </style>
 </head>
 <body class="h-full bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors">
