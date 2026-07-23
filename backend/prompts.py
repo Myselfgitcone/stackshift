@@ -296,15 +296,21 @@ FIX THIS CHECKLIST:
    ("Location Not Listed", "N/A", "See above", "Fabricated…"), bulletless duplicate
    job stubs, and stray markdown horizontal rules (---).
 4. EMPTY SECTIONS: delete any section header that has nothing under it.
+5. CLOUD RESTORATION (only if a note below names jobs + clouds): for each named
+   job, WEAVE that cloud naturally into 1–2 of its existing bullets AND into its
+   Technologies Used line, sitting alongside the tools already there (e.g. "on AWS
+   and Databricks, built dbt models…"). Do NOT add or remove bullets — only reword
+   existing ones. Do NOT touch jobs not named.
 
 Output ONLY the corrected resume in the same Markdown format — no commentary,
 no code fences."""
 
 
-def qa_fixer_prompt(tailored_markdown: str) -> str:
+def qa_fixer_prompt(tailored_markdown: str, cloud_directive: str = "") -> str:
+    extra = f"\n\n{cloud_directive}" if cloud_directive else ""
     return (
         "Fix the checklist issues in this resume and return the full corrected "
-        "Markdown. Keep every bullet.\n\n" + tailored_markdown
+        "Markdown. Keep every bullet." + extra + "\n\n" + tailored_markdown
     )
 
 

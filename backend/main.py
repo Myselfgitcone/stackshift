@@ -88,31 +88,48 @@ def _split_jobs(text: str):
     return out
 
 
-def _preserve_native_clouds(tailored: str, base_resume: str, target: str, cloud_swap: bool) -> str:
-    """Deterministic guard: a job that was NOT cloud-swapped must keep the real
-    cloud it used in the base resume. If the tailored job's Technologies Used line
-    dropped it, add it back."""
+def _missing_native_clouds(tailored: str, base_resume: str, target: str, cloud_swap: bool) -> dict:
+    """Return {company: real_cloud} for non-swapped jobs whose real base cloud is
+    missing from the tailored output (needs restoring)."""
     base_cloud = {c: _detect_cloud(b) for c, b in _split_jobs(base_resume)}
-    if not base_cloud:
+    swaps = cloud_swap and target in ("AWS", "Azure", "GCP")
+    missing = {}
+    for idx, (company, body) in enumerate(_split_jobs(tailored), start=1):
+        real = base_cloud.get(company)
+        if not real or (swaps and idx <= 2):
+            continue
+        low = body.lower()
+        if real.lower() in low or any(s in low for s in _CLOUD_SIG[real]):
+            continue
+        missing[company] = real
+    return missing
+
+
+def _cloud_directive(missing: dict) -> str:
+    if not missing:
+        return ""
+    parts = "; ".join(f"{c.title()} used {cl}" for c, cl in missing.items())
+    return ("CLOUD RESTORATION NOTE — these jobs used a real cloud the draft dropped; "
+            "weave it into their bullets and Technologies Used per rule 5: " + parts + ".")
+
+
+def _backstop_native_clouds(tailored: str, missing: dict) -> str:
+    """Last-resort: if a job still lacks its real cloud after the QA fixer, at least
+    ensure it appears in that job's Technologies Used line."""
+    if not missing:
         return tailored
     lines = tailored.splitlines()
-    company, job_idx = None, 0
-    swaps = cloud_swap and target in ("AWS", "Azure", "GCP")
+    company = None
     for i, ln in enumerate(lines):
         m = _re.search(r"@\s*([A-Za-z0-9&.\-]+)", ln)
         if m and _re.search(r"@\s*[A-Z]", ln):
-            company, job_idx = m.group(1).strip().lower(), job_idx + 1
+            company = m.group(1).strip().lower()
             continue
-        if company and _re.match(r"\s*\*{0,2}technologies used", ln, _re.I):
-            real = base_cloud.get(company)
-            if not real:
-                continue
-            if swaps and job_idx <= 2:          # this job was intentionally swapped
-                continue
+        if company in missing and _re.match(r"\s*\*{0,2}technologies used", ln, _re.I):
+            real = missing[company]
             low = ln.lower()
-            if real.lower() in low or any(s in low for s in _CLOUD_SIG[real]):
-                continue                        # cloud already present
-            lines[i] = ln.rstrip() + f", {real}"  # re-inject the real cloud
+            if real.lower() not in low and not any(s in low for s in _CLOUD_SIG[real]):
+                lines[i] = ln.rstrip() + f", {real}"
     return "\n".join(lines)
 
 # A "number token": 40%, 3x, 500K, $420K, 2TB, 99.9%, 12, 2B+ ...
@@ -288,18 +305,19 @@ async def tailor(
         **llm_kw,
     ).strip()
 
-    # ---- 3a. deterministic guard: non-swapped jobs keep their real base cloud --
-    tailored = _preserve_native_clouds(tailored, resume_text, context.get("target_cloud", "None"), cloud_swap)
+    # ---- 3a. detect non-swapped jobs whose real base cloud got dropped ---------
+    _tgt = context.get("target_cloud", "None")
+    missing_clouds = _missing_native_clouds(tailored, resume_text, _tgt, cloud_swap)
 
-    # ---- 3b. QA FIXER (cheap model): tech lines, de-stack numbers, strip junk
-    # Comprehensive but safe — must keep the same bullet count, else discarded.
+    # ---- 3b. QA FIXER (cheap model): weave dropped clouds into bullets, tech
+    # lines, de-stack numbers, strip junk. Comprehensive but bullet-count-safe.
     def _bullets(md: str) -> int:
         return sum(1 for ln in md.splitlines() if ln.lstrip().startswith(("- ", "* ")))
 
     try:
         fixed = llm.chat(
             prompts.QA_FIXER_SYSTEM,
-            prompts.qa_fixer_prompt(tailored),
+            prompts.qa_fixer_prompt(tailored, _cloud_directive(missing_clouds)),
             temperature=0.2,
             **cheap_kw,
         ).strip()
@@ -312,6 +330,11 @@ async def tailor(
         # else: fixer misbehaved -> keep the tailor output as-is
     except Exception:  # noqa: BLE001 — best-effort
         pass
+
+    # ---- 3c. backstop: if any dropped cloud STILL missing, ensure it's at least
+    # in that job's Technologies Used line (recheck against the post-fix text).
+    still_missing = _missing_native_clouds(tailored, resume_text, _tgt, cloud_swap)
+    tailored = _backstop_native_clouds(tailored, still_missing)
 
     # ---- 4. final check + three-gate score (ATS / recruiter / hiring manager)
     scores = {}
