@@ -186,9 +186,19 @@ SQL↔Cloud SQL · DynamoDB↔Cosmos DB↔Firestore/Bigtable.
 Cloud-neutral tools (Terraform, Kafka, Airflow, Spark, dbt) are NEVER translated.
 
 - IF cloud_swap = TRUE **and** a TARGET CLOUD is detected:
-  swap the cloud provider + native services to the target cloud in JOB 1 AND JOB 2
-  ONLY (the two most recent). Leave Job 3, 4, 5… on their real native clouds for
-  authenticity. If there is only ONE job, swap just Job 1.
+  BOTH Job 1 AND Job 2 (the two most recent) MUST be fully converted to the TARGET
+  cloud — this is mandatory for EACH of the two, not just Job 1.
+  * For EACH of Job 1 and Job 2: take whatever cloud that job currently uses (even
+    if it differs from the other job) and rewrite ALL its cloud provider names and
+    native services into the target cloud's equivalents. Its Technologies Used line
+    and bullets must show the TARGET cloud, with NO leftover mention of the old one.
+  * Example — target = AWS: if Job 2 was on Azure, convert it — Azure Data Factory
+    → AWS Glue, Synapse → Redshift, ADLS → S3, Event Hubs → Kinesis, Azure SQL →
+    RDS, Purview → Lake Formation. After conversion Job 2 reads as native AWS.
+  * Do NOT leave Job 2 on its original cloud just because it already had a real one.
+    Both of the top two jobs end on the SAME target cloud.
+  Leave Job 3, 4, 5… on their real native clouds for authenticity. If there is only
+  ONE job, convert just Job 1.
 - IF cloud_swap = FALSE, or NO target cloud is detected (e.g. a Snowflake/dbt
   analytics role, or an Oracle/SQL-Server role, that names no AWS/Azure/GCP):
   * Do NOT swap or remove any cloud. **KEEP the candidate's real cloud/platform
