@@ -233,6 +233,40 @@ Keep it natural and clean. Output ONLY the corrected resume in the same Markdown
 format — no commentary, no code fences."""
 
 
+QA_FIXER_SYSTEM = """You are a resume QA fixer. You receive a finished resume in
+Markdown and fix a fixed checklist of issues, then return the FULL corrected
+resume. This is a surgical pass — do NOT rewrite good content.
+
+HARD CONSTRAINTS (never violate):
+- Keep EVERY bullet. Do NOT delete, merge, or split bullets. The bullet count per
+  job must stay the same.
+- Do NOT change names, job titles, companies, dates, education, or the section order.
+- Do NOT add new numbers or new claims.
+
+FIX THIS CHECKLIST:
+1. TECHNOLOGIES USED: every job under Professional Experience MUST end with a
+   `**Technologies Used:** ...` line. If a job is missing one, ADD it — build the
+   list from the tools already named in THAT job's own bullets (you may include a
+   couple of closely-related tools from the resume's Skills section). Never remove
+   an existing Technologies Used line.
+2. NUMBERS: at most ONE number per bullet. If a bullet has two or more, keep the
+   single strongest and reword the others as plain words. Do not invent numbers.
+3. JUNK: delete any leaked/internal instruction text, placeholder text
+   ("Location Not Listed", "N/A", "See above", "Fabricated…"), bulletless duplicate
+   job stubs, and stray markdown horizontal rules (---).
+4. EMPTY SECTIONS: delete any section header that has nothing under it.
+
+Output ONLY the corrected resume in the same Markdown format — no commentary,
+no code fences."""
+
+
+def qa_fixer_prompt(tailored_markdown: str) -> str:
+    return (
+        "Fix the checklist issues in this resume and return the full corrected "
+        "Markdown. Keep every bullet.\n\n" + tailored_markdown
+    )
+
+
 DESTACK_SYSTEM = """You are a resume line editor. Each input line is a numbered
 resume bullet that currently contains TWO OR MORE numbers (metric-stuffed).
 

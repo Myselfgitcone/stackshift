@@ -209,11 +209,29 @@ async def tailor(
         **llm_kw,
     ).strip()
 
-    # ---- 4. surgical metric clean-up: reword ONLY over-stacked bullets ------
-    # Fixes number-stuffing without ever touching bullet count/structure.
-    tailored = _destack_metrics(tailored, cheap_kw)
+    # ---- 3b. QA FIXER (cheap model): tech lines, de-stack numbers, strip junk
+    # Comprehensive but safe — must keep the same bullet count, else discarded.
+    def _bullets(md: str) -> int:
+        return sum(1 for ln in md.splitlines() if ln.lstrip().startswith(("- ", "* ")))
 
-    # ---- 5. three-gate score (ATS / recruiter / hiring manager), cheap model
+    try:
+        fixed = llm.chat(
+            prompts.QA_FIXER_SYSTEM,
+            prompts.qa_fixer_prompt(tailored),
+            temperature=0.2,
+            **cheap_kw,
+        ).strip()
+        if (
+            fixed.count("\n") > 5
+            and len(fixed) > 0.6 * len(tailored)
+            and _bullets(fixed) == _bullets(tailored)   # no bullet lost/added
+        ):
+            tailored = fixed
+        # else: fixer misbehaved -> keep the tailor output as-is
+    except Exception:  # noqa: BLE001 — best-effort
+        pass
+
+    # ---- 4. final check + three-gate score (ATS / recruiter / hiring manager)
     scores = {}
     try:
         scores = llm.chat_json(
