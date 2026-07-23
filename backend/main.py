@@ -57,6 +57,64 @@ class TailorResult(BaseModel):
 
 import re as _re  # noqa: E402
 
+_CLOUD_SIG = {
+    "AWS": ("aws", "amazon web", "redshift", "cloudformation", " emr", " s3", "ec2", "lambda"),
+    "Azure": ("azure", "synapse", "adls", "data factory", "event hubs"),
+    "GCP": ("gcp", "google cloud", "bigquery", "dataproc", "dataflow", "pub/sub"),
+}
+
+
+def _detect_cloud(text: str):
+    tl = text.lower()
+    for cloud, sigs in _CLOUD_SIG.items():
+        if any(s in tl for s in sigs):
+            return cloud
+    return None
+
+
+def _split_jobs(text: str):
+    """Yield (company_first_word_lower, body) per '@ Company' job header."""
+    out, company, buf = [], None, []
+    for ln in text.splitlines():
+        m = _re.search(r"@\s*([A-Za-z0-9&.\-]+)", ln)
+        if m and _re.search(r"@\s*[A-Z]", ln):
+            if company is not None:
+                out.append((company, "\n".join(buf)))
+            company, buf = m.group(1).strip().lower(), [ln]
+        elif company is not None:
+            buf.append(ln)
+    if company is not None:
+        out.append((company, "\n".join(buf)))
+    return out
+
+
+def _preserve_native_clouds(tailored: str, base_resume: str, target: str, cloud_swap: bool) -> str:
+    """Deterministic guard: a job that was NOT cloud-swapped must keep the real
+    cloud it used in the base resume. If the tailored job's Technologies Used line
+    dropped it, add it back."""
+    base_cloud = {c: _detect_cloud(b) for c, b in _split_jobs(base_resume)}
+    if not base_cloud:
+        return tailored
+    lines = tailored.splitlines()
+    company, job_idx = None, 0
+    swaps = cloud_swap and target in ("AWS", "Azure", "GCP")
+    for i, ln in enumerate(lines):
+        m = _re.search(r"@\s*([A-Za-z0-9&.\-]+)", ln)
+        if m and _re.search(r"@\s*[A-Z]", ln):
+            company, job_idx = m.group(1).strip().lower(), job_idx + 1
+            continue
+        if company and _re.match(r"\s*\*{0,2}technologies used", ln, _re.I):
+            real = base_cloud.get(company)
+            if not real:
+                continue
+            if swaps and job_idx <= 2:          # this job was intentionally swapped
+                continue
+            low = ln.lower()
+            if real.lower() in low or any(s in low for s in _CLOUD_SIG[real]):
+                continue                        # cloud already present
+            lines[i] = ln.rstrip() + f", {real}"  # re-inject the real cloud
+    return "\n".join(lines)
+
 # A "number token": 40%, 3x, 500K, $420K, 2TB, 99.9%, 12, 2B+ ...
 _NUM = _re.compile(r"\$?\d[\d,.]*\s*(?:%|x|\+|K|M|B|TB|GB|k|hrs?|hours?|min|days?)?", _re.I)
 
@@ -229,6 +287,9 @@ async def tailor(
         temperature=0.5,
         **llm_kw,
     ).strip()
+
+    # ---- 3a. deterministic guard: non-swapped jobs keep their real base cloud --
+    tailored = _preserve_native_clouds(tailored, resume_text, context.get("target_cloud", "None"), cloud_swap)
 
     # ---- 3b. QA FIXER (cheap model): tech lines, de-stack numbers, strip junk
     # Comprehensive but safe — must keep the same bullet count, else discarded.
