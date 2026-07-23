@@ -65,7 +65,11 @@ OUTPUT STRUCTURE (exact order, Markdown)
 ================================================================================
 Line 1:  `# <Candidate Full Name>`            (real name from resume)
 Line 2:  `<phone> | <email>`                   (phone FIRST, then email; NO city/state/location, no linkedin)
-Line 3:  `**<Exact target Job Title from the JD>**`   (headline)
+Line 3:  `**<Exact Job Title from the JD>**`   (headline)
+         - Use ONLY the clean, short job title exactly as the JD states it
+           (e.g. "Analytics Engineer", "Senior Database Developer", "Enterprise
+           Database Consultant"). Do NOT append domains, tools, seniority, or extra
+           qualifiers ("– Geospatial & ArcGIS", "| Snowflake", "(Senior)"). Just the title.
 
 ## Summary
 - 4–6 bullets. Reframe the candidate AS the JD's role. Each bullet echoes the JD's
