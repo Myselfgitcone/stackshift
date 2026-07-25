@@ -400,7 +400,9 @@ Return ONLY compact JSON, no prose:
   "recruiter": {"score": <0-100>, "note": "<one short reason>"},
   "hiring_manager": {"score": <0-100>, "note": "<one short reason>"},
   "overall": <0-100>,
-  "top_fixes": ["<specific fix 1>", "<specific fix 2>", "<specific fix 3>"]
+  "top_fixes": ["<specific fix 1>", "<specific fix 2>", "<specific fix 3>"],
+  "present": ["<JD tool the resume DOES cover>"],
+  "missing": ["<JD tool genuinely NOT covered>"]
 }
 
 Gate definitions:
@@ -408,14 +410,29 @@ Gate definitions:
 - recruiter: 6-second scan — does the title match, does the summary show fit fast, is it clean and skimmable.
 - hiring_manager: believability — no invented metrics, no inflated years/clearance, claims are defensible, bridged honestly.
 overall = holistic, roughly the weakest-gate-weighted average.
-top_fixes = the 3 highest-impact concrete improvements (empty list if truly none)."""
+top_fixes = the 3 highest-impact concrete improvements (empty list if truly none).
+
+present / missing — you are given the JD's target tools. For EACH one, decide by
+MEANING (not exact string) whether the resume covers it, and put it in exactly one
+list. PRESENT if the resume expresses it in ANY form: exact name, an acronym or
+its spelled-out form (RAG = Retrieval-Augmented Generation; ML = Machine Learning;
+CI/CD = continuous integration/deployment), a synonym or near-equivalent
+(containers/Kubernetes cover "Docker"; MLflow/fine-tuning cover "Machine
+Learning"), or an honest bridge phrase. MISSING only if genuinely not covered any
+of those ways. Judge by what the resume MEANS, as a human reviewer would — never
+literal word-for-word. Every target tool goes in present OR missing, never both,
+never neither."""
 
 
-def score_prompt(jd_text: str, tailored_markdown: str) -> str:
+def score_prompt(jd_text: str, tailored_markdown: str, target_tools=None) -> str:
+    tools = ", ".join(str(t) for t in (target_tools or []) if str(t).strip())
+    tools_block = f"JD TARGET TOOLS (classify each as present/missing):\n  {tools}\n\n" if tools else ""
     return (
         f"JOB DESCRIPTION:\n{jd_text}\n\n"
+        f"{tools_block}"
         f"TAILORED RESUME:\n{tailored_markdown}\n\n"
-        "Score the three gates and return the JSON."
+        "Score the three gates, classify every target tool present/missing, "
+        "and return the JSON."
     )
 
 

@@ -337,15 +337,40 @@ async def tailor(
     tailored = _backstop_native_clouds(tailored, still_missing)
 
     # ---- 4. final check + three-gate score (ATS / recruiter / hiring manager)
+    target_tools = (context.get("target_tools") or [])
     scores = {}
     try:
         scores = llm.chat_json(
             prompts.SCORE_SYSTEM,
-            prompts.score_prompt(job_description, tailored),
+            prompts.score_prompt(job_description, tailored, target_tools),
             **cheap_kw,
         ) or {}
     except Exception:  # noqa: BLE001 — scoring is best-effort
         scores = {}
+
+    # Honest ATS: the score call classifies each JD target tool present/missing
+    # by MEANING against the FINAL resume. Replace the model's guessed ATS gate
+    # with a real coverage ratio from that classification, refresh the
+    # present/missing chips to match, and recompute overall as the gate average.
+    # (Mirrors job-hunter — a counted ATS instead of an LLM vibe.)
+    _valid = {str(t).lower(): str(t) for t in target_tools}
+    _sp = [_valid[str(x).lower()] for x in (scores.get("present") or []) if str(x).lower() in _valid]
+    _sm = [_valid[str(x).lower()] for x in (scores.get("missing") or []) if str(x).lower() in _valid]
+    _seen = {x.lower() for x in _sp + _sm}
+    _sm += [str(t) for t in target_tools if str(t).lower() not in _seen]  # unclassified -> missing
+    if _sp or _sm:
+        context["present"] = _sp
+        context["missing"] = _sm
+        present, missing = _sp, _sm
+        total = len(_sp) + len(_sm)
+        if total and scores:
+            scores["ats"] = {"score": round(len(_sp) / total * 100),
+                             "note": f"{len(_sp)}/{total} JD tools covered"}
+            _gates = [g.get("score") for g in (scores.get("ats"), scores.get("recruiter"),
+                                               scores.get("hiring_manager")) if isinstance(g, dict)]
+            _gates = [g for g in _gates if isinstance(g, (int, float))]
+            if _gates:
+                scores["overall"] = round(sum(_gates) / len(_gates))
 
     return TailorResult(
         context=context,
