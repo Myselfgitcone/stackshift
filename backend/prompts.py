@@ -77,16 +77,31 @@ Line 3:  `**<Exact Job Title from the JD>**`   (headline)
   the obvious match. Plain, confident, no invented metrics.
 
 ## Skills
-- EXACTLY 4 category lines: `- **<Dynamic Category Name>:** skill, skill, ...`
-- Category names derived from the JD's domain (e.g. "Cloud & Infrastructure",
-  "Data Pipelines", "Languages", "Practices & Tools"). NEVER "Category 1".
-- 4–7 skills per category. List ONLY skills/tools the candidate genuinely has
-  (evidenced in the base resume) or that transfer closely from their real stack.
-  Do NOT list a specialized platform the base shows ZERO evidence of (e.g. ArcGIS
-  Enterprise, SAP HANA, a niche product the candidate never used) as an owned
-  skill — that's not defensible. Such tools may only be acknowledged via BRIDGE
-  language inside a bullet, never as an owned Skill and never in the title.
-  No soft-skill padding.
+- 5–7 category lines: `- **<Dynamic Category Name>:** skill, skill, ...`
+  Use MORE categories (6–7) for a broad data/engineering skillset so each line
+  stays tight and coherent; use fewer (5) only for a genuinely narrow role. Do
+  NOT cram everything into 4 broad buckets — that overloads lines and drops
+  whole domains.
+- Category names come from the JD's domains and the candidate's real strengths,
+  e.g. "Data Warehousing & Modeling", "Languages & Scripting", "ETL &
+  Orchestration", "Business Intelligence & Analytics", "Cloud Platforms",
+  "DevOps & Infrastructure", "Data Quality & Governance", "AI / ML Engineering".
+  NEVER "Category 1". SPLIT any category that would overflow — break a bloated
+  "Cloud, Linux & DevOps" into "Cloud Platforms" and "DevOps & Infrastructure".
+- If the JD mentions business intelligence, reporting, dashboards, or analytics
+  AND the candidate has BI tools (Power BI, Tableau, Looker, etc.), give BI its
+  OWN "Business Intelligence & Analytics" line — do not bury it in another.
+- 5–7 skills per category; hard ceiling 8. List ONLY skills/tools the candidate
+  genuinely has (evidenced in the base resume) or that transfer closely from
+  their real stack. Do NOT list a specialized platform the base shows ZERO
+  evidence of (e.g. ArcGIS Enterprise, SAP HANA, a niche product never used) as
+  an owned skill — that's not defensible; acknowledge such tools only via BRIDGE
+  language in a bullet, never as an owned Skill and never in the title. No
+  soft-skill padding.
+- KEEP EVERY TOOL THAT APPEARS IN BOTH THE BASE RESUME AND THE JD — those shared
+  tools are your real, defensible keywords; with 5–7 categories there is room
+  for all of them. Never repeat a tool across categories, and never list two
+  names for one thing ("Data Warehouse" and "Data Warehousing" — pick one).
 
 ## Professional Experience
 For each job, in this exact shape:
@@ -222,6 +237,54 @@ Oracle package development", "applying stored-procedure logic analogous to SSIS"
 The most recent job may lean more direct; older jobs stay bridged. A bridged tool
 appears ONLY in bullet bridge phrasing — NEVER in the headline title and NEVER as
 an owned entry in the Skills section.
+
+================================================================================
+COVERAGE STRATEGY — cover everything real; leave out only what you'd have to fake
+================================================================================
+The goal is HONEST coverage, not a target percentage.
+
+- COVER EVERY tool the candidate GENUINELY HAS or that TRANSFERS CLOSELY from
+  their real stack. Never drop one — it is free, honest, defensible coverage.
+  Use the JD's own wording so it matches (resume "RAG pipelines" + JD
+  "Retrieval-Augmented Generation" → write it so BOTH read; containers + JD
+  "Docker" → name Docker). A candidate who truly matches the whole JD SHOULD
+  score near-complete coverage — that is honest, not stuffing.
+
+- ALSO COVER these classes — candidates lose easy, legitimate coverage otherwise:
+  * UNIVERSAL BASELINE skills the JD names that ANY engineer at this level
+    genuinely does, even if the base resume never lists them as a "tool": Linux,
+    high availability, on-call rotation / incident response, Agile, CI/CD, code
+    review, monitoring/observability, performance tuning, data migration. If the
+    JD asks and it's normal for the role, weave it in (JD "high availability" →
+    phrase existing SLA/uptime work as high-availability; "data migration" →
+    their SQL Server→Snowflake move IS a migration). Expected competencies, not
+    fabrication.
+  * CATEGORY-EQUIVALENT tools: when the JD names a specific product in a category
+    the candidate ALREADY works in, include it (JD wants Splunk, candidate uses
+    Datadog/Grafana — same observability family → include Splunk).
+  * COMMON AI-DEV tools the candidate plausibly uses (GitHub Copilot) when the JD
+    lists them. Genuinely niche ones they don't use (Windsurf, a proprietary IDE)
+    stay out.
+
+- The ONLY tools you leave out are ones the candidate does NOT have and cannot
+  honestly bridge: bridge at most 2–3 of the most important such gaps, and OMIT
+  the rest — low-importance, zero-adjacency items (a niche proprietary product, a
+  language they never touched that appears once as "a plus"). Leaving 1–2 of
+  those out is CORRECT; it is what keeps the resume believable.
+
+Judge a gap's importance from the JD: labels if present ("required" vs "preferred
+/ a plus"), else frequency, position (title/summary/first responsibilities vs
+buried in a list), wording ("strong/must/hands-on" = core; "exposure to / a plus
+/ or similar / or equivalent" = peripheral; in an "X, Y, or equivalent" group one
+member covers the group), and role-centrality. Do NOT manufacture gaps by
+dropping real skills, and do NOT fake foreign ones to look complete.
+
+HOW A BULLET MUST END (an automated check treats these as cut off):
+- Never end on a bare "-ing" word ("…and caching" → "…and caching strategies").
+- If you close with a ", <verb>ing …" clause, give it at least THREE words after
+  the gerund ("…orchestration, improving pipeline reliability" trips it;
+  "…improving reliability across production workloads" does not).
+- Never end on a preposition or connective. End on a complete noun phrase.
 
 ================================================================================
 GLOBAL RULES
