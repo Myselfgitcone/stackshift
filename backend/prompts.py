@@ -153,6 +153,25 @@ VERB REGISTER — match the JD's seniority (critical):
   Implemented, Optimized) are correct — do not force architect verbs.
 - Either way, vary the opening verbs so bullets don't read repetitively.
 
+IMPACT LADDER — a few standout bullets per job, most are scope:
+- Real strong resumes do NOT make every bullet a heroic achievement (reads fake).
+  The FIRST few bullets of each job lead with impact/ownership; the rest describe
+  genuine scope. How many lead with impact, by recency: Job 1 → top 2–3; Job 2 →
+  top 2; Job 3 and older → top 1.
+- An IMPACT bullet = ownership verb + WHAT IT ACHIEVED/ENABLED ("Built pipelines"
+  → "Architected the ingestion platform that gave six business units self-service
+  analytics"). Close on a REAL outcome — a real number if the base resume/JD has
+  one, else a real qualitative result ("…eliminating recurring nightly failures").
+  NEVER invent a number to manufacture impact. Put the strongest impact bullets at
+  the TOP of the most recent job.
+
+NEVER USE THESE (they read robotic / templated) — use a real verb instead:
+- "Responsible for", "Tasked with", "Utilized", "Leveraged", "Spearheaded",
+  "Worked on", "Helped with", "Involved in", "In charge of".
+VARY THE WRITING: no two bullets in the SAME job start with the same verb, and
+vary sentence shape — don't run one "[Verb] [noun] using [tool] to [result]"
+template down the whole job.
+
 DO NOT:
 - Do NOT copy JD lines word-for-word.
 - Do NOT append measurement-tool clauses ("as measured in PagerDuty", "tracked via
@@ -359,7 +378,12 @@ FIX THIS CHECKLIST:
    ("Location Not Listed", "N/A", "See above", "Fabricated…"), bulletless duplicate
    job stubs, and stray markdown horizontal rules (---).
 4. EMPTY SECTIONS: delete any section header that has nothing under it.
-5. CLOUD RESTORATION (only if a note below names jobs + clouds): for each named
+5. TEMPLATED WORDING: rewrite any bullet starting with a cliché — "Responsible
+   for", "Tasked with", "Utilized", "Leveraged", "Spearheaded", "Worked on",
+   "Helped with", "Involved in", "In charge of" — to lead with a real action verb.
+   If two bullets in the SAME job start with the same verb, change one so no verb
+   repeats within a job. Reword only; keep meaning, tools, and any number.
+6. CLOUD RESTORATION (only if a note below names jobs + clouds): for each named
    job, WEAVE that cloud naturally into 1–2 of its existing bullets AND into its
    Technologies Used line, sitting alongside the tools already there (e.g. "on AWS
    and Databricks, built dbt models…"). Do NOT add or remove bullets — only reword
