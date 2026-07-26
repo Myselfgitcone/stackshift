@@ -34,9 +34,15 @@ Rules:
   If no cloud is explicitly named, target_cloud MUST be "None". Do NOT infer a
   cloud from the company, domain, or tools — a Spark/Flink/data role that names no
   cloud is "None". Use "Multi" only if two+ are named and weighted equally.
-- target_tools: 4–12 concrete, resume-worthy items actually named in the JD (services, IaC, orchestration, streaming, warehouses, frameworks). No soft skills.
+- target_tools: 12–20 concrete, resume-worthy skills the JD emphasises — tools,
+  services, frameworks AND named technical competencies ("dimensional modeling",
+  "semantic layer design", "data governance", "query optimization", "A/B
+  experimentation", "data warehousing"). This is the checklist the resume's ATS
+  coverage is scored against, so be thorough — include every hard skill a
+  recruiter or ATS would scan for. Still NO soft skills (communication,
+  collaboration, mentoring, stakeholder management).
 - NEVER list years-of-experience, seniority levels, or security clearances (e.g. "13+ years experience", "TS Clearance", "Secret", "Public Trust") as tools — these are NOT injectable and must not appear in target_tools/present/missing.
-- present + missing together should cover target_tools: present = evidenced in resume, missing = not. Cap 'missing' at 12."""
+- present + missing together should cover target_tools: present = evidenced in resume, missing = not."""
 
 
 def analyze_prompt(resume_text: str, jd_text: str) -> str:
