@@ -288,6 +288,21 @@ async def tailor(
     if _tc in _cloud_terms and not any(term in _jd for term in _cloud_terms[_tc]):
         context["target_cloud"] = "None"
 
+    # Drop soft skills that leaked into the tool list — an ATS scans for hard
+    # skills, not "collaboration", and soft terms are trivially covered so they
+    # inflate the coverage score. Prompt-only exclusion slips; filter here.
+    _SOFT = ("collaborat", "communicat", "stakeholder", "mentor", "leadership",
+             "teamwork", "team player", "interpersonal", "problem solving",
+             "problem-solving", "critical thinking", "attention to detail",
+             "time management", "adaptability", "self-starter", "proactive",
+             "cross-functional", "cross functional", "fast-paced",
+             "work independently", "curiosity", "willingness to learn",
+             "organizational skills", "presentation skills", "influencing", "consensus")
+    _soft = lambda s: any(m in str(s).lower() for m in _SOFT)
+    for _k in ("target_tools", "present", "missing"):
+        _v = context.get(_k) or []
+        context[_k] = [x for x in _v if not _soft(x)]
+
     present = context.get("present", []) or []
     missing = context.get("missing", []) or []
 
